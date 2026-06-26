@@ -1,89 +1,56 @@
-name: Deploy GGFix Client to Amazon S3
+name: Deploy Admin to S3
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
-  push:
-    branches:
-      - main
-    paths:
-      - "src/**"
-      - "public/**"
-      - "scripts/**"
-      - "package.json"
-      - "package-lock.json"
-      - "next.config.js"
-      - ".github/workflows/deploy-s3.yml"
-
+# Required for the OIDC role assumption (AWS_ROLE_TO_ASSUME).
 permissions:
   contents: read
   id-token: write
 
 concurrency:
-  group: ggfixclient-s3-deploy
+  group: s3-deploy
   cancel-in-progress: true
 
 jobs:
   build-and-deploy:
-    name: Build and Deploy GGFix Client
     runs-on: ubuntu-latest
-
-    env:
-      NEXT_PUBLIC_AUTH_BASE: ${{ vars.NEXT_PUBLIC_AUTH_BASE }}
-      NEXT_PUBLIC_TICKET_BASE: ${{ vars.NEXT_PUBLIC_TICKET_BASE }}
-      NEXT_PUBLIC_USER_BASE: ${{ vars.NEXT_PUBLIC_USER_BASE }}
-      NEXT_PUBLIC_SHOP_BASE: ${{ vars.NEXT_PUBLIC_SHOP_BASE }}
-      NEXT_PUBLIC_TECHNICIAN_BASE: ${{ vars.NEXT_PUBLIC_TECHNICIAN_BASE }}
-      NEXT_PUBLIC_INVENTORY_BASE: ${{ vars.NEXT_PUBLIC_INVENTORY_BASE }}
-      NEXT_PUBLIC_MARKETPLACE_BASE: ${{ vars.NEXT_PUBLIC_MARKETPLACE_BASE }}
-      NEXT_PUBLIC_PICKUP_BASE: ${{ vars.NEXT_PUBLIC_PICKUP_BASE }}
-      NEXT_PUBLIC_NOTIFICATION_BASE: ${{ vars.NEXT_PUBLIC_NOTIFICATION_BASE }}
-      NEXT_PUBLIC_SUBSCRIPTION_BASE: ${{ vars.NEXT_PUBLIC_SUBSCRIPTION_BASE }}
-      NEXT_PUBLIC_API_BASE: ${{ vars.NEXT_PUBLIC_API_BASE }}
-      NEXT_PUBLIC_ORDER_BASE: ${{ vars.NEXT_PUBLIC_ORDER_BASE }}
-
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
-      - name: Build static Next.js website
+      # CRITICAL: output:'export' bakes NEXT_PUBLIC_* at BUILD time. These must be
+      # passed in here from the repository variables, or api.js falls back to
+      # http://localhost:* and the deployed site hits the wrong host.
+      - name: Build static export
+        env:
+          NEXT_PUBLIC_API_BASE: ${{ vars.NEXT_PUBLIC_API_BASE }}
+          NEXT_PUBLIC_AUTH_BASE: ${{ vars.NEXT_PUBLIC_AUTH_BASE }}
+          NEXT_PUBLIC_TICKET_BASE: ${{ vars.NEXT_PUBLIC_TICKET_BASE }}
+          NEXT_PUBLIC_USER_BASE: ${{ vars.NEXT_PUBLIC_USER_BASE }}
+          NEXT_PUBLIC_SHOP_BASE: ${{ vars.NEXT_PUBLIC_SHOP_BASE }}
+          NEXT_PUBLIC_TECHNICIAN_BASE: ${{ vars.NEXT_PUBLIC_TECHNICIAN_BASE }}
+          NEXT_PUBLIC_INVENTORY_BASE: ${{ vars.NEXT_PUBLIC_INVENTORY_BASE }}
+          NEXT_PUBLIC_MARKETPLACE_BASE: ${{ vars.NEXT_PUBLIC_MARKETPLACE_BASE }}
+          NEXT_PUBLIC_PICKUP_BASE: ${{ vars.NEXT_PUBLIC_PICKUP_BASE }}
+          NEXT_PUBLIC_NOTIFICATION_BASE: ${{ vars.NEXT_PUBLIC_NOTIFICATION_BASE }}
+          NEXT_PUBLIC_SUBSCRIPTION_BASE: ${{ vars.NEXT_PUBLIC_SUBSCRIPTION_BASE }}
+          NEXT_PUBLIC_ORDER_BASE: ${{ vars.NEXT_PUBLIC_ORDER_BASE }}
         run: npm run build
 
-      - name: Verify static export output
-        run: |
-          set -euo pipefail
-
-          if [ ! -f "out/index.html" ]; then
-            echo "ERROR: out/index.html was not created."
-            echo "Check next.config.js for: output: 'export'"
-            exit 1
-          fi
-
-          echo "Static website export is ready."
-          find out -maxdepth 2 -type f | head -50
-
-      - name: Configure AWS credentials through OIDC
-        uses: aws-actions/configure-aws-credentials@v6
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.AWS_REGION }}
-          role-session-name: ggfixclient-s3-deploy
 
-      - name: Deploy website to S3
-        run: |
-          set -euo pipefail
-
-          aws s3 sync out/ "s3://${{ vars.S3_BUCKET_NAME }}/" \
-            --delete \
-            --only-show-errors
-
-          echo "Deployment completed successfully."
+      - name: Sync to S3
+        run: aws s3 sync out/ "s3://${{ vars.S3_BUCKET_NAME }}" --delete

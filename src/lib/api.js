@@ -1,20 +1,23 @@
-const getBase = (key) => {
-  if (typeof window === 'undefined') return process.env[`NEXT_PUBLIC_${key}`] || '';
-  return process.env[`NEXT_PUBLIC_${key}`] || '';
-};
+// IMPORTANT: Next.js only inlines NEXT_PUBLIC_* env vars into the client bundle when
+// they are referenced as STATIC literals (process.env.NEXT_PUBLIC_FOO). A dynamic
+// lookup such as process.env[`NEXT_PUBLIC_${key}`] is NOT inlined, so in the browser
+// it returns undefined and every base silently falls back to localhost. Each var must
+// therefore be spelled out below. With output:'export' these are baked in at BUILD time.
+const pick = (value, fallback) => (value && value.trim()) || fallback;
 
-export const MASTER_BASE = () => getBase('API_BASE') || getBase('API_BASE_URL') || 'http://localhost:8091';
-export const AUTH_BASE = () => getBase('AUTH_BASE') || 'http://localhost:8081';
-export const TICKET_BASE = () => getBase('TICKET_BASE') || 'http://localhost:8082';
-export const USER_BASE = () => getBase('USER_BASE') || 'http://localhost:8083';
-export const SHOP_BASE = () => getBase('SHOP_BASE') || 'http://localhost:8084';
-export const TECHNICIAN_BASE = () => getBase('TECHNICIAN_BASE') || 'http://localhost:8085';
-export const INVENTORY_BASE = () => getBase('INVENTORY_BASE') || 'http://localhost:8086';
-export const MARKETPLACE_BASE = () => getBase('MARKETPLACE_BASE') || 'http://localhost:8087';
-export const PICKUP_BASE = () => getBase('PICKUP_BASE') || 'http://localhost:8088';
-export const NOTIFICATION_BASE = () => getBase('NOTIFICATION_BASE') || 'http://localhost:8089';
-export const SUBSCRIPTION_BASE = () => getBase('SUBSCRIPTION_BASE') || 'http://localhost:8090';
-export const ORDER_BASE = () => getBase('ORDER_BASE') || 'http://localhost:8092';
+export const MASTER_BASE = () =>
+  pick(process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_BASE_URL, 'http://localhost:8091');
+export const AUTH_BASE = () => pick(process.env.NEXT_PUBLIC_AUTH_BASE, 'http://localhost:8081');
+export const TICKET_BASE = () => pick(process.env.NEXT_PUBLIC_TICKET_BASE, 'http://localhost:8082');
+export const USER_BASE = () => pick(process.env.NEXT_PUBLIC_USER_BASE, 'http://localhost:8083');
+export const SHOP_BASE = () => pick(process.env.NEXT_PUBLIC_SHOP_BASE, 'http://localhost:8084');
+export const TECHNICIAN_BASE = () => pick(process.env.NEXT_PUBLIC_TECHNICIAN_BASE, 'http://localhost:8085');
+export const INVENTORY_BASE = () => pick(process.env.NEXT_PUBLIC_INVENTORY_BASE, 'http://localhost:8086');
+export const MARKETPLACE_BASE = () => pick(process.env.NEXT_PUBLIC_MARKETPLACE_BASE, 'http://localhost:8087');
+export const PICKUP_BASE = () => pick(process.env.NEXT_PUBLIC_PICKUP_BASE, 'http://localhost:8088');
+export const NOTIFICATION_BASE = () => pick(process.env.NEXT_PUBLIC_NOTIFICATION_BASE, 'http://localhost:8089');
+export const SUBSCRIPTION_BASE = () => pick(process.env.NEXT_PUBLIC_SUBSCRIPTION_BASE, 'http://localhost:8090');
+export const ORDER_BASE = () => pick(process.env.NEXT_PUBLIC_ORDER_BASE, 'http://localhost:8092');
 
 async function request(base, path, options = {}) {
   const url = `${base.replace(/\/$/, '')}${path}`;
