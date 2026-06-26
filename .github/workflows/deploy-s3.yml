@@ -74,27 +74,16 @@ jobs:
       - name: Configure AWS credentials through OIDC
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: arn:aws:iam::998850986267:role/GitHubActionsGGFixClientDeployRole
-          aws-region: ap-south-1
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.AWS_REGION }}
           role-session-name: ggfixclient-s3-deploy
 
-      - name: Verify AWS identity
-        run: |
-          set -euo pipefail
-          aws sts get-caller-identity
-
-      - name: Deploy website files to Amazon S3
+      - name: Deploy website to S3
         run: |
           set -euo pipefail
 
-          aws s3 sync out/ s3://ggfixclient/ \
+          aws s3 sync out/ "s3://${{ vars.S3_BUCKET_NAME }}/" \
             --delete \
             --only-show-errors
 
-          echo "GGFix client deployment completed successfully."
-
-      - name: Show website endpoint
-        run: |
-          echo "Website URL:"
-          echo "http://ggfixclient.s3-website.ap-south-1.amazonaws.com"
-
+          echo "Deployment completed successfully."
