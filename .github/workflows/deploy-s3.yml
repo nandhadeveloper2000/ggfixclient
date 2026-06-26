@@ -32,6 +32,7 @@ jobs:
       # http://localhost:* and the deployed site hits the wrong host.
       - name: Build static export
         env:
+          NEXT_PUBLIC_MASTER_DATA_BASE: ${{ vars.NEXT_PUBLIC_MASTER_DATA_BASE }}
           NEXT_PUBLIC_API_BASE: ${{ vars.NEXT_PUBLIC_API_BASE }}
           NEXT_PUBLIC_AUTH_BASE: ${{ vars.NEXT_PUBLIC_AUTH_BASE }}
           NEXT_PUBLIC_TICKET_BASE: ${{ vars.NEXT_PUBLIC_TICKET_BASE }}

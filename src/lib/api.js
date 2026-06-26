@@ -6,7 +6,12 @@
 const pick = (value, fallback) => (value && value.trim()) || fallback;
 
 export const MASTER_BASE = () =>
-  pick(process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_BASE_URL, 'http://localhost:8091');
+  pick(
+    process.env.NEXT_PUBLIC_MASTER_DATA_BASE ||
+      process.env.NEXT_PUBLIC_API_BASE ||
+      process.env.NEXT_PUBLIC_API_BASE_URL,
+    'http://localhost:8091',
+  );
 export const AUTH_BASE = () => pick(process.env.NEXT_PUBLIC_AUTH_BASE, 'http://localhost:8081');
 export const TICKET_BASE = () => pick(process.env.NEXT_PUBLIC_TICKET_BASE, 'http://localhost:8082');
 export const USER_BASE = () => pick(process.env.NEXT_PUBLIC_USER_BASE, 'http://localhost:8083');
