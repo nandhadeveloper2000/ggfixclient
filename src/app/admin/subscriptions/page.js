@@ -78,11 +78,11 @@ export default function SubscriptionsPage() {
   return (
     <div className="p-6 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-semibold text-slate-100">Subscription Management</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Subscription Management</h1>
         <button
           type="button"
           onClick={openAssign}
-          className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600"
+          className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           Assign plan to shop
         </button>
@@ -90,7 +90,7 @@ export default function SubscriptionsPage() {
       <p className="text-admin-muted text-sm mb-4">
         Assign plans to shops, manage expiry, and view payments.
       </p>
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
       <div className="flex gap-2 border-b border-admin-border mb-4">
         {['subscriptions', 'plans', 'payments'].map((t) => (
@@ -98,7 +98,7 @@ export default function SubscriptionsPage() {
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium capitalize ${tab === t ? 'text-admin-accent border-b-2 border-admin-accent' : 'text-admin-muted hover:text-slate-200'}`}
+            className={`px-4 py-2 text-sm font-medium capitalize ${tab === t ? 'text-admin-accent border-b-2 border-admin-accent' : 'text-admin-muted hover:text-slate-800'}`}
           >
             {t}
           </button>
@@ -159,7 +159,7 @@ export default function SubscriptionsPage() {
       {modal === 'assign' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl bg-admin-card border border-admin-border p-6">
-            <h2 className="text-lg font-medium text-slate-100 mb-4">Assign plan to shop</h2>
+            <h2 className="text-lg font-medium text-slate-900 mb-4">Assign plan to shop</h2>
             <form onSubmit={handleAssign} className="space-y-4">
               <div>
                 <label className="block text-sm text-admin-muted mb-1">Shop ID</label>
@@ -168,7 +168,7 @@ export default function SubscriptionsPage() {
                   value={assignShopId}
                   onChange={(e) => setAssignShopId(e.target.value)}
                   placeholder="UUID or slug"
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   required
                 />
               </div>
@@ -177,7 +177,7 @@ export default function SubscriptionsPage() {
                 <select
                   value={assignPlanId}
                   onChange={(e) => setAssignPlanId(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   required
                 >
                   <option value="">Select plan</option>
@@ -192,11 +192,11 @@ export default function SubscriptionsPage() {
                   type="date"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                 />
               </div>
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => setModal(null)} className="rounded-lg px-4 py-2 text-slate-300 hover:bg-admin-dark">Cancel</button>
+                <button type="button" onClick={() => setModal(null)} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
                 <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">
                   {submitting ? 'Saving…' : 'Assign'}
                 </button>

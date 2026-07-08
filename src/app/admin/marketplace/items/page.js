@@ -182,11 +182,11 @@ export default function MarketplaceItemsPage() {
   return (
     <div className="p-6 md:p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-slate-100">Marketplace Items</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Marketplace Items</h1>
         <button
           type="button"
           onClick={openCreate}
-          className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600"
+          className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           Add item
         </button>
@@ -195,7 +195,7 @@ export default function MarketplaceItemsPage() {
         Manage products shown in the shop owner “Buy / Sell” flows. These map to marketplace
         products (GET /marketplace/products).
       </p>
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       {loading ? (
         <p className="text-admin-muted text-sm">Loading…</p>
       ) : (
@@ -212,7 +212,7 @@ export default function MarketplaceItemsPage() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl bg-admin-card border border-admin-border p-6">
-            <h2 className="text-lg font-medium text-slate-100 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               {modal.type === 'create' ? 'New marketplace item' : 'Edit marketplace item'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -222,7 +222,7 @@ export default function MarketplaceItemsPage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   required
                 />
               </div>
@@ -231,7 +231,7 @@ export default function MarketplaceItemsPage() {
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                 >
                   <option value="DEVICE">DEVICE</option>
                   <option value="SPARE_PART">SPARE_PART</option>
@@ -242,7 +242,7 @@ export default function MarketplaceItemsPage() {
                 <select
                   value={brandId}
                   onChange={(e) => setBrandId(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   required
                 >
                   <option value="">Select brand</option>
@@ -258,7 +258,7 @@ export default function MarketplaceItemsPage() {
                 <select
                   value={modelId}
                   onChange={(e) => setModelId(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   required
                 >
                   <option value="">Select model</option>
@@ -276,7 +276,7 @@ export default function MarketplaceItemsPage() {
                   min="0"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   required
                 />
               </div>
@@ -285,7 +285,7 @@ export default function MarketplaceItemsPage() {
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                 >
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="INACTIVE">INACTIVE</option>
@@ -297,7 +297,7 @@ export default function MarketplaceItemsPage() {
                   type="text"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   placeholder="https://…/product.png"
                 />
               </div>
@@ -305,7 +305,7 @@ export default function MarketplaceItemsPage() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="rounded-lg px-4 py-2 text-slate-300 hover:bg-admin-dark"
+                  className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark"
                 >
                   Cancel
                 </button>

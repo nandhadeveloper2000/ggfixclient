@@ -8,12 +8,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Light admin theme (GG Shop India reference). Token NAMES are kept for
+        // compatibility with existing usages: `dark` = page/input background,
+        // `card` = raised surface (cards, modals, tables). `panel` stays the
+        // dark sidebar chrome.
         admin: {
-          dark: '#0f172a',
-          card: '#1e293b',
-          border: '#334155',
-          accent: '#0ea5e9',
-          muted: '#64748b',
+          dark: '#f1f5f9', // page + input background (light gray)
+          card: '#ffffff', // cards / modals / table surfaces (white)
+          panel: '#131426', // sidebar chrome (dark)
+          border: '#e2e8f0', // hairline borders
+          accent: '#2563eb', // primary blue — buttons, active nav, links
+          muted: '#64748b', // secondary text
         },
       },
     },

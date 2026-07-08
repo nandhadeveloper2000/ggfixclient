@@ -67,20 +67,20 @@ export default function ShopOwnerListPage() {
     <div className="p-6 md:p-8 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">Shop Owner List</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Shop Owner List</h1>
           <p className="text-sm text-admin-muted">Review shop owners, email verification, profile completion, active status, and direct actions.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={load}
-            className="rounded-lg border border-admin-border bg-admin-dark px-4 py-2 text-sm font-medium text-slate-200 hover:bg-admin-card"
+            className="rounded-lg border border-admin-border bg-admin-dark px-4 py-2 text-sm font-medium text-slate-800 hover:bg-admin-card"
           >
             Refresh
           </button>
           <Link
             href="/admin/shops/new-owner"
-            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600"
+            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             + Add Shop Owner
           </Link>
@@ -92,12 +92,12 @@ export default function ShopOwnerListPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by shop owner name, mobile, email, or address"
-          className="flex-1 rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-sm text-slate-100 placeholder:text-admin-muted focus:outline-none focus:border-admin-accent"
+          className="flex-1 rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-sm text-slate-900 placeholder:text-admin-muted focus:outline-none focus:border-admin-accent"
         />
         <span className="text-xs text-admin-muted">Total: {list.length}</span>
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div className="rounded-xl bg-admin-card border border-admin-border overflow-hidden">
         <div className="overflow-x-auto">
@@ -122,7 +122,7 @@ export default function ShopOwnerListPage() {
                 <tr><td className="px-4 py-6 text-admin-muted" colSpan={9}>No shop owners yet. Click "+ Add Shop Owner" to create one.</td></tr>
               ) : filtered.map((r, i) => (
                 <tr key={r.id} className="hover:bg-admin-dark/40">
-                  <td className="px-4 py-3 text-slate-300">{i + 1}</td>
+                  <td className="px-4 py-3 text-slate-600">{i + 1}</td>
                   <td className="px-4 py-3">
                     {r.avatarUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -133,9 +133,9 @@ export default function ShopOwnerListPage() {
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-medium text-slate-100">{r.name || '—'}</td>
-                  <td className="px-4 py-3 text-slate-300">{r.phone || '—'}</td>
-                  <td className="px-4 py-3 text-slate-300">{r.email || '—'}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900">{r.name || '—'}</td>
+                  <td className="px-4 py-3 text-slate-600">{r.phone || '—'}</td>
+                  <td className="px-4 py-3 text-slate-600">{r.email || '—'}</td>
                   <td className="px-4 py-3">
                     {r.emailVerified ? (
                       <span className="inline-flex items-center rounded-full bg-emerald-500/15 text-emerald-300 px-2 py-0.5 text-[11px] font-medium">✓ Verified</span>
@@ -154,14 +154,14 @@ export default function ShopOwnerListPage() {
                       <Link href={`/admin/shops/${r.id}/view`} title="View" className="p-1.5 rounded hover:bg-admin-dark text-sky-400">
                         <IconEye />
                       </Link>
-                      <Link href={`/admin/shops/${r.id}/edit`} title="Edit" className="p-1.5 rounded hover:bg-admin-dark text-slate-300">
+                      <Link href={`/admin/shops/${r.id}/edit`} title="Edit" className="p-1.5 rounded hover:bg-admin-dark text-slate-600">
                         <IconPencil />
                       </Link>
                       <button
                         type="button"
                         title="Delete"
                         onClick={() => setConfirmingDelete(r)}
-                        className="p-1.5 rounded hover:bg-admin-dark text-red-400"
+                        className="p-1.5 rounded hover:bg-admin-dark text-red-600"
                       >
                         <IconTrash />
                       </button>
@@ -177,13 +177,13 @@ export default function ShopOwnerListPage() {
       {confirmingDelete && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-admin-card border border-admin-border rounded-xl p-6 max-w-sm w-full mx-4 space-y-4">
-            <h3 className="text-lg font-semibold text-slate-100">Delete shop owner?</h3>
+            <h3 className="text-lg font-semibold text-slate-900">Delete shop owner?</h3>
             <p className="text-sm text-admin-muted">
-              This will permanently remove <span className="text-slate-200 font-medium">{confirmingDelete.name || confirmingDelete.email}</span>.
+              This will permanently remove <span className="text-slate-800 font-medium">{confirmingDelete.name || confirmingDelete.email}</span>.
               Their {confirmingDelete.locations?.length || 0} linked shop{(confirmingDelete.locations?.length || 0) === 1 ? '' : 's'} will be detached (not deleted).
             </p>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setConfirmingDelete(null)} className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-200 hover:bg-admin-dark">Cancel</button>
+              <button onClick={() => setConfirmingDelete(null)} className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-800 hover:bg-admin-dark">Cancel</button>
               <button onClick={() => handleDelete(confirmingDelete)} className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700">Delete</button>
             </div>
           </div>
@@ -198,7 +198,7 @@ function ProfileProgress({ percent, done, total }) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-[11px]">
-        <span className="font-semibold text-slate-200">{percent}%</span>
+        <span className="font-semibold text-slate-800">{percent}%</span>
         <span className="text-admin-muted">{done}/{total} complete</span>
       </div>
       <div className="h-1.5 rounded-full bg-admin-dark overflow-hidden">
@@ -222,7 +222,7 @@ function StatusToggle({ active, onToggle }) {
       <span className={`relative inline-block h-5 w-9 rounded-full transition ${active ? 'bg-emerald-500' : 'bg-admin-dark border border-admin-border'}`}>
         <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition ${active ? 'left-[18px]' : 'left-0.5'}`} />
       </span>
-      <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${active ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-500/15 text-slate-400'}`}>
+      <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${active ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-500/15 text-slate-500'}`}>
         {active ? 'Active' : 'Inactive'}
       </span>
     </button>

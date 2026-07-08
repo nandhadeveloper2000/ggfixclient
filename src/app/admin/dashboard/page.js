@@ -2,42 +2,78 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { masterApi, shopApi, subscriptionApi } from '@/lib/api';
+import { Store, CheckCircle2, XCircle, Tag, Briefcase, Boxes } from 'lucide-react';
+import { masterApi, authApi } from '@/lib/api';
+import PageHeader from '@/components/PageHeader';
+
+const asArray = (d) => (Array.isArray(d) ? d : d?.content ?? []);
+
+function StatCard({ title, value, href, icon: Icon, iconBg, iconText }) {
+  return (
+    <Link
+      href={href}
+      className="rounded-xl border border-admin-border bg-admin-card p-5 shadow-sm transition-all hover:border-admin-accent/50 hover:shadow-md"
+    >
+      <div className="flex items-center gap-3">
+        <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconBg}`}>
+          <Icon className={`h-5 w-5 ${iconText}`} />
+        </div>
+        <div>
+          <p className="text-sm text-admin-muted">{title}</p>
+          <p className="text-2xl font-semibold text-slate-900">{value}</p>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState({
+    shopsTotal: 0,
+    shopsActive: 0,
+    shopsInactive: 0,
+    categories: 0,
     brands: 0,
     models: 0,
-    shops: 0,
-    subscriptions: 0,
     error: null,
   });
 
   useEffect(() => {
     const run = async () => {
       try {
-        const [brands, models, shops, subs] = await Promise.allSettled([
-          masterApi.get('/master/brands').then((d) => (Array.isArray(d) ? d.length : d?.length ?? 0)),
-          masterApi.get('/master/brands').then(async (brands) => {
-            const list = Array.isArray(brands) ? brands : brands?.content ?? [];
-            let total = 0;
-            for (const b of list.slice(0, 20)) {
-              const id = b.id ?? b.brandId;
-              if (id) {
-                const m = await masterApi.get(`/master/brands/${id}/models`).catch(() => []);
-                total += Array.isArray(m) ? m.length : 0;
-              }
-            }
-            return total;
-          }),
-          shopApi.get('/shops').then((d) => (Array.isArray(d) ? d.length : d?.content?.length ?? d?.total ?? 0)),
-          subscriptionApi.get('/subscriptions').then((d) => (Array.isArray(d) ? d.length : d?.content?.length ?? d?.total ?? 0)),
+        const [shopsR, catsR, brandsR] = await Promise.allSettled([
+          authApi.get('/auth/shops'), // has isActive/status (shop-service /shops does not)
+          masterApi.get('/master/device-categories'),
+          masterApi.get('/master/brands'),
         ]);
+
+        const shops = shopsR.status === 'fulfilled' ? asArray(shopsR.value) : [];
+        const cats = catsR.status === 'fulfilled' ? asArray(catsR.value) : [];
+        const brands = brandsR.status === 'fulfilled' ? asArray(brandsR.value) : [];
+
+        // Models have no list-all endpoint — sum across every brand.
+        const perBrand = await Promise.all(
+          brands.map((b) => {
+            const id = b.id ?? b.brandId;
+            return id
+              ? masterApi.get(`/master/brands/${id}/models`).then((m) => asArray(m).length).catch(() => 0)
+              : 0;
+          })
+        );
+        const models = perBrand.reduce((a, n) => a + n, 0);
+
+        const total = shops.length;
+        const active = shops.filter(
+          (s) => s.isActive === true || s.active === true || s.status === 'ACTIVE'
+        ).length;
+
         setStats({
-          brands: brands.status === 'fulfilled' ? brands.value : 0,
-          models: models.status === 'fulfilled' ? models.value : '-',
-          shops: shops.status === 'fulfilled' ? shops.value : 0,
-          subscriptions: subs.status === 'fulfilled' ? subs.value : 0,
+          shopsTotal: total,
+          shopsActive: active,
+          shopsInactive: total - active,
+          categories: cats.length,
+          brands: brands.length,
+          models,
           error: null,
         });
       } catch (e) {
@@ -47,63 +83,35 @@ export default function AdminDashboardPage() {
     run();
   }, []);
 
-  const cards = [
-    { title: 'Shops', value: stats.shops, href: '/admin/shops', color: 'bg-sky-500/20 text-sky-400' },
-    { title: 'Subscriptions', value: stats.subscriptions, href: '/admin/subscriptions', color: 'bg-emerald-500/20 text-emerald-400' },
-    { title: 'Brands', value: stats.brands, href: '/admin/master/brands', color: 'bg-amber-500/20 text-amber-400' },
-    { title: 'Models (sample)', value: stats.models, href: '/admin/master/models', color: 'bg-violet-500/20 text-violet-400' },
-  ];
-
   return (
     <div className="p-6 md:p-8">
-      <h1 className="text-2xl font-semibold text-slate-100 mb-6">Dashboard</h1>
+      <PageHeader breadcrumb={['Dashboard']} title="Dashboard" subtitle="Overview of your platform." />
+
       {stats.error && (
-        <p className="mb-4 text-sm text-red-400">
+        <p className="mb-4 text-sm text-red-600">
           Some data could not be loaded. Check backend URLs in .env.local. {stats.error}
         </p>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {cards.map((c) => (
-          <Link
-            key={c.href}
-            href={c.href}
-            className="rounded-xl border border-admin-border bg-admin-card p-5 hover:border-admin-accent/50 transition-colors"
-          >
-            <p className="text-sm text-admin-muted mb-1">{c.title}</p>
-            <p className={`text-2xl font-semibold ${c.color}`}>{c.value}</p>
-          </Link>
-        ))}
-      </div>
-      <div className="rounded-xl border border-admin-border bg-admin-card p-6">
-        <h2 className="text-lg font-medium text-slate-100 mb-3">Quick links</h2>
-        <ul className="space-y-2 text-sm">
-          <li>
-            <Link href="/admin/shops/new" className="text-admin-accent hover:underline">
-              Create shop
-            </Link>
-          </li>
-          <li>
-            <Link href="/admin/master/brands" className="text-admin-accent hover:underline">
-              Manage brands (used in mobile app dropdowns)
-            </Link>
-          </li>
-          <li>
-            <Link href="/admin/master/models" className="text-admin-accent hover:underline">
-              Manage models (by brand)
-            </Link>
-          </li>
-          <li>
-            <Link href="/admin/master/repair-services" className="text-admin-accent hover:underline">
-              Manage repair services
-            </Link>
-          </li>
-          <li>
-            <Link href="/admin/subscriptions" className="text-admin-accent hover:underline">
-              Subscriptions & payments
-            </Link>
-          </li>
-        </ul>
-      </div>
+
+      {/* Shops */}
+      <section className="mb-8">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-admin-muted">Shops</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <StatCard title="Total Shops" value={stats.shopsTotal} href="/admin/shops" icon={Store} iconBg="bg-sky-100" iconText="text-sky-600" />
+          <StatCard title="Active Shops" value={stats.shopsActive} href="/admin/shops" icon={CheckCircle2} iconBg="bg-emerald-100" iconText="text-emerald-600" />
+          <StatCard title="Inactive Shops" value={stats.shopsInactive} href="/admin/shops" icon={XCircle} iconBg="bg-rose-100" iconText="text-rose-600" />
+        </div>
+      </section>
+
+      {/* Master Data */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-admin-muted">Master Data</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <StatCard title="Categories" value={stats.categories} href="/admin/master/device-categories" icon={Tag} iconBg="bg-violet-100" iconText="text-violet-600" />
+          <StatCard title="Brands" value={stats.brands} href="/admin/master/brands" icon={Briefcase} iconBg="bg-amber-100" iconText="text-amber-600" />
+          <StatCard title="Models" value={stats.models} href="/admin/master/models" icon={Boxes} iconBg="bg-indigo-100" iconText="text-indigo-600" />
+        </div>
+      </section>
     </div>
   );
 }

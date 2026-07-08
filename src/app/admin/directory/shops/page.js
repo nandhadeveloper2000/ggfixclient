@@ -367,7 +367,7 @@ export default function DirectoryShopsPage() {
   return (
     <div className="p-6 md:p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-slate-100">Shops</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Shops</h1>
         <div className="flex gap-2">
           <button
             type="button"
@@ -381,7 +381,7 @@ export default function DirectoryShopsPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600"
+            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             Add shop
           </button>
@@ -390,7 +390,7 @@ export default function DirectoryShopsPage() {
       <p className="text-admin-muted text-sm mb-4">
         Shop directory (GET /shops). Edit a shop to manage its services and pickup slots.
       </p>
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       {loading ? (
         <p className="text-admin-muted">Loading…</p>
       ) : (
@@ -406,7 +406,7 @@ export default function DirectoryShopsPage() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
           <div className="w-full max-w-3xl rounded-xl bg-admin-card border border-admin-border p-6 my-8">
-            <h2 className="text-lg font-medium text-slate-100 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               {modal.type === 'create' ? 'New shop' : `Edit shop: ${modal.item.name}`}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -417,7 +417,7 @@ export default function DirectoryShopsPage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                     required
                   />
                 </div>
@@ -427,7 +427,7 @@ export default function DirectoryShopsPage() {
                     type="text"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   />
                 </div>
                 <div>
@@ -436,7 +436,7 @@ export default function DirectoryShopsPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   />
                 </div>
                 <div>
@@ -445,7 +445,7 @@ export default function DirectoryShopsPage() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   />
                 </div>
               </div>
@@ -465,7 +465,7 @@ export default function DirectoryShopsPage() {
                     handleAddressPaste(text);
                   }}
                   placeholder="No. 1 Bharathi Road, Manjakuppam, Cuddalore (or paste a Google Maps URL)"
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -475,7 +475,7 @@ export default function DirectoryShopsPage() {
                     type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   />
                 </div>
                 <div>
@@ -484,7 +484,7 @@ export default function DirectoryShopsPage() {
                     type="text"
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   />
                 </div>
                 <div>
@@ -493,12 +493,12 @@ export default function DirectoryShopsPage() {
                     type="text"
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   />
                 </div>
               </div>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-slate-300">Location coordinates</span>
+                <span className="text-sm font-medium text-slate-600">Location coordinates</span>
                 <button
                   type="button"
                   onClick={geocodeAddress}
@@ -518,7 +518,7 @@ export default function DirectoryShopsPage() {
                     value={latitude}
                     onChange={(e) => setLatitude(e.target.value)}
                     placeholder="11.7480000"
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   />
                 </div>
                 <div>
@@ -528,7 +528,7 @@ export default function DirectoryShopsPage() {
                     step="any"
                     value={longitude}
                     onChange={(e) => setLongitude(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   />
                 </div>
                 <div>
@@ -540,7 +540,7 @@ export default function DirectoryShopsPage() {
                     max="5"
                     value={rating}
                     onChange={(e) => setRating(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   />
                 </div>
               </div>
@@ -550,7 +550,7 @@ export default function DirectoryShopsPage() {
                   type="text"
                   value={hoursText}
                   onChange={(e) => setHoursText(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   placeholder="Mon-Sat 10am-8pm"
                 />
               </div>
@@ -560,7 +560,7 @@ export default function DirectoryShopsPage() {
                   type="text"
                   value={heroImageUrl}
                   onChange={(e) => setHeroImageUrl(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                 />
               </div>
               <div>
@@ -568,11 +568,11 @@ export default function DirectoryShopsPage() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   rows={4}
                 />
               </div>
-              <label className="flex items-center gap-2 text-sm text-slate-200">
+              <label className="flex items-center gap-2 text-sm text-slate-800">
                 <input
                   type="checkbox"
                   checked={isActive}
@@ -581,7 +581,7 @@ export default function DirectoryShopsPage() {
                 Active
               </label>
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-300 hover:bg-admin-dark">Close</button>
+                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Close</button>
                 <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">
                   {submitting ? 'Saving…' : 'Save'}
                 </button>
@@ -592,7 +592,7 @@ export default function DirectoryShopsPage() {
               <>
                 <hr className="my-6 border-admin-border" />
                 <section className="space-y-3">
-                  <h3 className="text-base font-medium text-slate-100">Services</h3>
+                  <h3 className="text-base font-medium text-slate-900">Services</h3>
                   <div className="flex flex-wrap gap-2">
                     {services.length === 0 ? (
                       <span className="text-admin-muted text-sm">No services attached.</span>
@@ -602,13 +602,13 @@ export default function DirectoryShopsPage() {
                         return (
                           <span
                             key={code}
-                            className="inline-flex items-center gap-2 rounded-full bg-admin-dark border border-admin-border px-3 py-1 text-xs text-slate-200"
+                            className="inline-flex items-center gap-2 rounded-full bg-admin-dark border border-admin-border px-3 py-1 text-xs text-slate-800"
                           >
                             {code}
                             <button
                               type="button"
                               onClick={() => removeService(code)}
-                              className="text-red-400 hover:text-red-300"
+                              className="text-red-600 hover:text-red-500"
                               aria-label={`Remove ${code}`}
                             >
                               ×
@@ -622,7 +622,7 @@ export default function DirectoryShopsPage() {
                     <select
                       value={newServiceCode}
                       onChange={(e) => setNewServiceCode(e.target.value)}
-                      className="rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100 text-sm"
+                      className="rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900 text-sm"
                     >
                       {SERVICE_CODES.map((c) => (
                         <option key={c} value={c}>{c}</option>
@@ -631,7 +631,7 @@ export default function DirectoryShopsPage() {
                     <button
                       type="button"
                       onClick={addService}
-                      className="rounded-lg bg-admin-accent px-3 py-2 text-sm text-white hover:bg-sky-600"
+                      className="rounded-lg bg-admin-accent px-3 py-2 text-sm text-white hover:bg-blue-700"
                     >
                       Add service
                     </button>
@@ -640,20 +640,20 @@ export default function DirectoryShopsPage() {
 
                 <hr className="my-6 border-admin-border" />
                 <section className="space-y-3">
-                  <h3 className="text-base font-medium text-slate-100">Pickup slots</h3>
+                  <h3 className="text-base font-medium text-slate-900">Pickup slots</h3>
                   {pickupSlots.length === 0 ? (
                     <p className="text-admin-muted text-sm">No pickup slots configured.</p>
                   ) : (
                     <ul className="divide-y divide-admin-border rounded-lg border border-admin-border">
                       {pickupSlots.map((s) => (
-                        <li key={s.id} className="flex items-center justify-between px-3 py-2 text-sm text-slate-200">
+                        <li key={s.id} className="flex items-center justify-between px-3 py-2 text-sm text-slate-800">
                           <span>
                             {s.dayOfWeek ? DAY_LABEL[s.dayOfWeek] : 'Any day'} · {s.startTime}–{s.endTime} · cap {s.capacity}
                           </span>
                           <button
                             type="button"
                             onClick={() => deletePickupSlot(s.id)}
-                            className="text-red-400 hover:underline text-xs"
+                            className="text-red-600 hover:underline text-xs"
                           >
                             Delete
                           </button>
@@ -667,7 +667,7 @@ export default function DirectoryShopsPage() {
                       <select
                         value={slotDay}
                         onChange={(e) => setSlotDay(e.target.value === '' ? '' : Number(e.target.value))}
-                        className="w-full rounded-lg bg-admin-dark border border-admin-border px-2 py-2 text-slate-100 text-sm"
+                        className="w-full rounded-lg bg-admin-dark border border-admin-border px-2 py-2 text-slate-900 text-sm"
                       >
                         {DAYS.map((d) => (
                           <option key={String(d.value)} value={d.value}>{d.label}</option>
@@ -680,7 +680,7 @@ export default function DirectoryShopsPage() {
                         type="time"
                         value={slotStart}
                         onChange={(e) => setSlotStart(e.target.value)}
-                        className="w-full rounded-lg bg-admin-dark border border-admin-border px-2 py-2 text-slate-100 text-sm"
+                        className="w-full rounded-lg bg-admin-dark border border-admin-border px-2 py-2 text-slate-900 text-sm"
                       />
                     </div>
                     <div>
@@ -689,7 +689,7 @@ export default function DirectoryShopsPage() {
                         type="time"
                         value={slotEnd}
                         onChange={(e) => setSlotEnd(e.target.value)}
-                        className="w-full rounded-lg bg-admin-dark border border-admin-border px-2 py-2 text-slate-100 text-sm"
+                        className="w-full rounded-lg bg-admin-dark border border-admin-border px-2 py-2 text-slate-900 text-sm"
                       />
                     </div>
                     <div>
@@ -699,14 +699,14 @@ export default function DirectoryShopsPage() {
                         min="1"
                         value={slotCapacity}
                         onChange={(e) => setSlotCapacity(e.target.value)}
-                        className="w-full rounded-lg bg-admin-dark border border-admin-border px-2 py-2 text-slate-100 text-sm"
+                        className="w-full rounded-lg bg-admin-dark border border-admin-border px-2 py-2 text-slate-900 text-sm"
                       />
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={addPickupSlot}
-                    className="rounded-lg bg-admin-accent px-3 py-2 text-sm text-white hover:bg-sky-600"
+                    className="rounded-lg bg-admin-accent px-3 py-2 text-sm text-white hover:bg-blue-700"
                   >
                     Add slot
                   </button>

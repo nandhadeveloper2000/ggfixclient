@@ -325,12 +325,12 @@ export default function NewShopOwnerPage() {
     <div className="space-y-4 pb-24">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-100">Create Shop Owner</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Create Shop Owner</h1>
           <p className="text-sm text-admin-muted">
             Create the shop owner account, then continue with one or more business locations in the same workspace.
           </p>
         </div>
-        <Link href="/admin/shops" className="text-sm text-admin-muted hover:text-slate-200">← Back to shops</Link>
+        <Link href="/admin/shops" className="text-sm text-admin-muted hover:text-slate-800">← Back to shops</Link>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -417,7 +417,7 @@ export default function NewShopOwnerPage() {
         <div className="rounded-xl bg-admin-card border border-admin-border p-5">
           <div className="flex items-center justify-between mb-3">
             <SectionHeader icon="🏪" title="Business Locations" inline />
-            <button type="button" onClick={addLocation} className="rounded-lg bg-admin-accent text-white text-xs px-3 py-1.5 hover:bg-sky-600">
+            <button type="button" onClick={addLocation} className="rounded-lg bg-admin-accent text-white text-xs px-3 py-1.5 hover:bg-blue-700">
               + Add another shop
             </button>
           </div>
@@ -426,9 +426,9 @@ export default function NewShopOwnerPage() {
             {locations.map((loc, i) => (
               <div key={i} className="rounded-lg border border-admin-border p-4 bg-admin-dark/40">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-slate-200">New Business Location {locations.length > 1 ? `#${i + 1}` : ''}</h3>
+                  <h3 className="text-sm font-semibold text-slate-800">New Business Location {locations.length > 1 ? `#${i + 1}` : ''}</h3>
                   {locations.length > 1 && (
-                    <button type="button" onClick={() => removeLocation(i)} className="text-admin-muted hover:text-red-400 text-lg leading-none">×</button>
+                    <button type="button" onClick={() => removeLocation(i)} className="text-admin-muted hover:text-red-600 text-lg leading-none">×</button>
                   )}
                 </div>
 
@@ -458,7 +458,7 @@ export default function NewShopOwnerPage() {
                                   type="button"
                                   key={k}
                                   onClick={() => applySuggestion(i, sug)}
-                                  className="block w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-admin-dark border-b border-admin-border last:border-b-0"
+                                  className="block w-full text-left px-3 py-2 text-xs text-slate-800 hover:bg-admin-dark border-b border-admin-border last:border-b-0"
                                 >
                                   <div className="flex items-center justify-between gap-2">
                                     <div className="font-medium truncate flex-1">{sug.displayName}</div>
@@ -485,9 +485,9 @@ export default function NewShopOwnerPage() {
                             </>
                           ) : (
                             <div className="px-3 py-3 text-xs text-admin-muted">
-                              <div className="font-medium text-slate-300">No matches found</div>
+                              <div className="font-medium text-slate-600">No matches found</div>
                               <div className="mt-1 text-[11px]">
-                                Try just the area or pincode (e.g. <span className="text-slate-200">Cuddalore</span> or <span className="text-slate-200">607002</span>), or use <span className="text-slate-200">🗺 Find on Google Maps</span> below.
+                                Try just the area or pincode (e.g. <span className="text-slate-800">Cuddalore</span> or <span className="text-slate-800">607002</span>), or use <span className="text-slate-800">🗺 Find on Google Maps</span> below.
                               </div>
                               <button
                                 type="button"
@@ -584,14 +584,14 @@ export default function NewShopOwnerPage() {
                 <div className="flex items-center justify-between gap-3 mt-2 flex-wrap">
                   <p className="text-[10px] text-admin-muted flex-1 min-w-[200px]">
                     📍 Latitude / Longitude lets customers within the pickup radius see this shop.
-                    Click <span className="text-slate-200 font-semibold">Get Current Location</span> at the shop, or use <span className="text-slate-200 font-semibold">Find on Google Maps</span> to right-click a pin and read off coords.
+                    Click <span className="text-slate-800 font-semibold">Get Current Location</span> at the shop, or use <span className="text-slate-800 font-semibold">Find on Google Maps</span> to right-click a pin and read off coords.
                     · Timezone: <span className="font-mono">{detectTimezone()}</span>
                   </p>
                   <div className="flex items-center gap-2 flex-wrap">
                     <button
                       type="button"
                       onClick={() => clearAddressFields(i)}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-admin-border bg-admin-dark px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-admin-card whitespace-nowrap"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-admin-border bg-admin-dark px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-admin-card whitespace-nowrap"
                       title="Wipe street/area/taluk/district/state/pincode/lat/lng"
                     >
                       ✕ Clear Address
@@ -600,7 +600,7 @@ export default function NewShopOwnerPage() {
                       href={mapsSearchUrl(loc)}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-admin-border bg-admin-dark px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-admin-card whitespace-nowrap"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-admin-border bg-admin-dark px-3 py-1.5 text-xs font-medium text-slate-800 hover:bg-admin-card whitespace-nowrap"
                     >
                       🗺 Find on Google Maps
                     </a>
@@ -608,7 +608,7 @@ export default function NewShopOwnerPage() {
                       type="button"
                       onClick={() => fetchLocationForShop(i)}
                       disabled={locatingIdx === i}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-admin-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-600 disabled:opacity-60 whitespace-nowrap"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-admin-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-60 whitespace-nowrap"
                     >
                       {locatingIdx === i ? (
                         <>
@@ -626,7 +626,7 @@ export default function NewShopOwnerPage() {
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-admin-border">
-                  <p className="text-sm font-semibold text-slate-200">Shop Photos & Documents</p>
+                  <p className="text-sm font-semibold text-slate-800">Shop Photos & Documents</p>
                   <p className="text-xs text-admin-muted mb-3">Shop front + banner/visiting card are required; GST &amp; Udyam are optional proofs.</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                     <UploadCard
@@ -673,14 +673,14 @@ export default function NewShopOwnerPage() {
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-300">{error}</div>
+          <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-500">{error}</div>
         )}
 
         <div className="flex items-center justify-end gap-3 sticky bottom-4 bg-admin-card border border-admin-border rounded-xl p-3">
-          <Link href="/admin/shops" className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-200 hover:bg-admin-dark">
+          <Link href="/admin/shops" className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-800 hover:bg-admin-dark">
             ← Cancel
           </Link>
-          <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-5 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50">
+          <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
             {submitting ? 'Saving…' : '💾 Save Shop Owner Details'}
           </button>
         </div>
@@ -706,7 +706,7 @@ function SectionHeader({ icon, title, small, inline }) {
   return (
     <div className={`flex items-center gap-2 ${inline ? '' : ''}`}>
       <span className="text-lg">{icon}</span>
-      <h2 className={`${small ? 'text-sm' : 'text-base'} font-semibold text-slate-100`}>{title}</h2>
+      <h2 className={`${small ? 'text-sm' : 'text-base'} font-semibold text-slate-900`}>{title}</h2>
     </div>
   );
 }
@@ -726,7 +726,7 @@ function UploadCard({ label, hint, url, uploading, onFile, accept, buttonText })
   return (
     <div className="rounded-lg border border-admin-border bg-admin-dark/40 p-3 flex flex-col">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-semibold text-slate-200">{label}</span>
+        <span className="text-xs font-semibold text-slate-800">{label}</span>
         {url && <a href={url} target="_blank" rel="noreferrer" className="text-[10px] text-sky-400 hover:underline">Open</a>}
       </div>
       <span className="text-[10px] text-admin-muted mb-2">{hint}</span>
@@ -736,13 +736,13 @@ function UploadCard({ label, hint, url, uploading, onFile, accept, buttonText })
             // eslint-disable-next-line @next/next/no-img-element
             <img src={url} alt={label} className="max-h-20 object-contain" />
           ) : (
-            <span className="text-[11px] text-slate-300 truncate max-w-full px-2">{url.split('/').pop() || 'File'}</span>
+            <span className="text-[11px] text-slate-600 truncate max-w-full px-2">{url.split('/').pop() || 'File'}</span>
           )
         ) : (
           <span className="text-xs text-admin-muted">{uploading ? 'Uploading…' : 'No file'}</span>
         )}
       </div>
-      <label className="mt-2 w-full text-center rounded-md bg-admin-accent text-white text-xs py-1.5 cursor-pointer hover:bg-sky-600">
+      <label className="mt-2 w-full text-center rounded-md bg-admin-accent text-white text-xs py-1.5 cursor-pointer hover:bg-blue-700">
         {uploading ? 'Uploading…' : (url ? `Replace ${label}` : buttonText)}
         <input type="file" accept={accept} className="hidden" onChange={(e) => onFile(e.target.files?.[0] || null)} disabled={uploading} />
       </label>

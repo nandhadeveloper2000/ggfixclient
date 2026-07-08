@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Repair Shop SaaS – Admin',
-  description: 'Super Admin panel for mobile repair SaaS',
+  title: 'GGFIX Management Portal',
+  description: 'GGFIX Management Portal — super-admin panel',
 };
 
 export default function RootLayout({ children }) {

@@ -71,23 +71,24 @@ function LoginPageInner() {
       <a href="/login" className="flex flex-col items-center mb-8">
         <Image
           src="/logo.png"
-          alt="GloboGreen logo"
-          width={120}
-          height={120}
+          alt="GGFIX logo"
+          width={112}
+          height={112}
           className="object-contain"
           priority
         />
-        <span className="text-sm text-slate-500 mt-2">www.globogreen.in</span>
+        <span className="mt-3 text-xl font-bold text-slate-900">GGFIX Management Portal</span>
+        <span className="text-sm text-slate-500">www.globogreen.in</span>
       </a>
       <div className="w-full max-w-sm rounded-xl bg-admin-card border border-admin-border p-8 shadow-xl">
-        <h1 className="text-xl font-semibold text-slate-100 mb-6">Admin Login</h1>
+        <h1 className="text-xl font-semibold text-slate-900 mb-6">Admin Login</h1>
 
         <div className="flex rounded-lg bg-admin-dark border border-admin-border p-1 mb-5">
           <button
             type="button"
             onClick={() => setAuthMethod('PASSWORD')}
             className={`flex-1 py-1.5 text-sm font-medium rounded-md transition ${
-              !usingOtp ? 'bg-admin-card text-slate-100 shadow' : 'text-admin-muted hover:text-slate-200'
+              !usingOtp ? 'bg-admin-card text-slate-900 shadow' : 'text-admin-muted hover:text-slate-800'
             }`}
           >
             Password
@@ -96,7 +97,7 @@ function LoginPageInner() {
             type="button"
             onClick={() => setAuthMethod('OTP')}
             className={`flex-1 py-1.5 text-sm font-medium rounded-md transition ${
-              usingOtp ? 'bg-admin-card text-slate-100 shadow' : 'text-admin-muted hover:text-slate-200'
+              usingOtp ? 'bg-admin-card text-slate-900 shadow' : 'text-admin-muted hover:text-slate-800'
             }`}
           >
             OTP
@@ -112,7 +113,7 @@ function LoginPageInner() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. barani"
-              className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100 focus:border-admin-accent focus:outline-none"
+              className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900 focus:border-admin-accent focus:outline-none"
               required
             />
           </div>
@@ -127,7 +128,7 @@ function LoginPageInner() {
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
                 placeholder="6-digit code"
-                className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100 focus:border-admin-accent focus:outline-none tracking-widest"
+                className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900 focus:border-admin-accent focus:outline-none tracking-widest"
                 required
               />
               <p className="text-xs text-admin-muted mt-1.5">
@@ -141,16 +142,16 @@ function LoginPageInner() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100 focus:border-admin-accent focus:outline-none"
+                className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900 focus:border-admin-accent focus:outline-none"
                 required
               />
             </div>
           )}
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-admin-accent py-2.5 font-medium text-white hover:bg-sky-600 disabled:opacity-50"
+            className="w-full rounded-lg bg-admin-accent py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>

@@ -7,7 +7,11 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 const nextConfig = {
   reactStrictMode: true,
-  output: 'export',
+  // Static export ONLY for production builds (S3 / GitHub Pages). In `next dev`
+  // we leave output undefined so dynamic [id] routes (shop view/edit/settings)
+  // render on-demand — `output: export` otherwise 500s any id that isn't in
+  // generateStaticParams(), which can't include runtime shop UUIDs.
+  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
   trailingSlash: true,
   images: { unoptimized: true },
   basePath,

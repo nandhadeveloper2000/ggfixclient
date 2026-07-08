@@ -125,7 +125,7 @@ export default function ShopSettingsPage() {
   if (!shopId) {
     return (
       <div className="p-6 md:p-8">
-        <p className="text-red-400 text-sm">Invalid shop id.</p>
+        <p className="text-red-600 text-sm">Invalid shop id.</p>
       </div>
     );
   }
@@ -134,7 +134,7 @@ export default function ShopSettingsPage() {
     <div className="p-6 md:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">Shop settings</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Shop settings</h1>
           <p className="text-admin-muted text-sm">
             Manage shop profile, KYC status, and pickup options.
           </p>
@@ -142,13 +142,13 @@ export default function ShopSettingsPage() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-lg border border-admin-border px-3 py-2 text-sm text-slate-200 hover:bg-admin-dark"
+          className="rounded-lg border border-admin-border px-3 py-2 text-sm text-slate-800 hover:bg-admin-dark"
         >
           ← Back
         </button>
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
       {loading ? (
         <p className="text-admin-muted text-sm">Loading…</p>
       ) : (
@@ -157,14 +157,14 @@ export default function ShopSettingsPage() {
           <section className="rounded-xl border border-admin-border bg-admin-card p-5 space-y-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-medium text-slate-100">Basic Shop Profile</h2>
+                <h2 className="text-lg font-medium text-slate-900">Basic Shop Profile</h2>
                 <p className="text-admin-muted text-sm">
                   Name, contact details, and address used in invoices and mobile app.
                 </p>
               </div>
               <Link
                 href="/admin/shops"
-                className="text-xs text-admin-muted hover:text-slate-100 hover:underline"
+                className="text-xs text-admin-muted hover:text-slate-900 hover:underline"
               >
                 View all shops
               </Link>
@@ -177,7 +177,7 @@ export default function ShopSettingsPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   required
                 />
               </div>
@@ -187,7 +187,7 @@ export default function ShopSettingsPage() {
                   type="text"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   placeholder="green-mobiles"
                 />
               </div>
@@ -197,7 +197,7 @@ export default function ShopSettingsPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                 />
               </div>
               <div className="space-y-1">
@@ -206,7 +206,7 @@ export default function ShopSettingsPage() {
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                 />
               </div>
               <div className="md:col-span-2 space-y-1">
@@ -215,7 +215,7 @@ export default function ShopSettingsPage() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   rows={3}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                 />
               </div>
               <div className="space-y-1">
@@ -224,7 +224,7 @@ export default function ShopSettingsPage() {
                   type="text"
                   value={timezone}
                   onChange={(e) => setTimezone(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   placeholder="Asia/Kolkata"
                 />
               </div>
@@ -233,7 +233,7 @@ export default function ShopSettingsPage() {
                 <select
                   value={isActive ? 'ACTIVE' : 'SUSPENDED'}
                   onChange={(e) => setIsActive(e.target.value === 'ACTIVE')}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                 >
                   <option value="ACTIVE">Active</option>
                   <option value="SUSPENDED">Suspended</option>
@@ -256,7 +256,7 @@ export default function ShopSettingsPage() {
           <section className="rounded-xl border border-admin-border bg-admin-card p-5 space-y-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-medium text-slate-100">KYC status</h2>
+                <h2 className="text-lg font-medium text-slate-900">KYC status</h2>
                 <p className="text-admin-muted text-sm">
                   Controls whether this shop is pending, approved, or rejected for onboarding.
                 </p>
@@ -266,7 +266,7 @@ export default function ShopSettingsPage() {
               <select
                 value={kycStatus}
                 onChange={(e) => setKycStatus(e.target.value)}
-                className="rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100 text-sm"
+                className="rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900 text-sm"
               >
                 <option value="PENDING">Pending</option>
                 <option value="APPROVED">Approved</option>
@@ -285,7 +285,7 @@ export default function ShopSettingsPage() {
           {/* Pickup options */}
           <section className="rounded-xl border border-admin-border bg-admin-card p-5 space-y-4">
             <div>
-              <h2 className="text-lg font-medium text-slate-100">Pickup options</h2>
+              <h2 className="text-lg font-medium text-slate-900">Pickup options</h2>
               <p className="text-admin-muted text-sm">
                 Default pickup window and distance used in the shop owner mobile app.
               </p>
@@ -297,7 +297,7 @@ export default function ShopSettingsPage() {
                   type="text"
                   value={pickupFromTime}
                   onChange={(e) => setPickupFromTime(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   placeholder="01:00 PM"
                 />
               </div>
@@ -307,7 +307,7 @@ export default function ShopSettingsPage() {
                   type="text"
                   value={pickupToTime}
                   onChange={(e) => setPickupToTime(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   placeholder="07:00 PM"
                 />
               </div>
@@ -318,7 +318,7 @@ export default function ShopSettingsPage() {
                   min="0"
                   value={pickupDistanceKm}
                   onChange={(e) => setPickupDistanceKm(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                 />
               </div>
               <div className="md:col-span-3 flex justify-end gap-2 pt-2">

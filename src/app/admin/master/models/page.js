@@ -34,7 +34,7 @@ export default function MasterModelsPage() {
   const [formBrandId, setFormBrandId] = useState('');
   const [formSeriesId, setFormSeriesId] = useState('');
   const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
+  const [modelNumber, setModelNumber] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState('DEVICE');
   const [submitting, setSubmitting] = useState(false);
@@ -155,7 +155,7 @@ export default function MasterModelsPage() {
     setFormBrandId(filterBrand || '');
     setFormSeriesId(filterSeries || '');
     setName('');
-    setSlug('');
+    setModelNumber('');
     setImageUrl('');
     setCategory('DEVICE');
   };
@@ -169,7 +169,7 @@ export default function MasterModelsPage() {
     setFormBrandId(map?.brandId || item.brandId || '');
     setFormSeriesId(item.seriesId || '');
     setName(item.name || '');
-    setSlug(item.slug || '');
+    setModelNumber(item.modelNumber || '');
     setImageUrl(item.imageUrl || '');
     setCategory(item.category || 'DEVICE');
   };
@@ -186,7 +186,10 @@ export default function MasterModelsPage() {
         categoryId: formCategoryId || null,
         seriesId: formSeriesId || null,
         name: name.trim(),
-        slug: slug.trim() || slugify(name),
+        modelNumber: modelNumber.trim() || null,
+        // Slug is no longer edited in the UI; keep it auto-generated so the
+        // (series_id, slug) unique constraint and legacy consumers keep working.
+        slug: slugify(name),
         imageUrl: imageUrl.trim() || null,
         category: category || null,
       };
@@ -235,7 +238,7 @@ export default function MasterModelsPage() {
     { key: 'brand', label: 'Brand', render: (r) => nameById.brand(r.brandId) || '—' },
     { key: 'series', label: 'Series', render: (r) => nameById.series(r.seriesId) || '—' },
     { key: 'name', label: 'Model' },
-    { key: 'slug', label: 'Slug', render: (r) => r.slug || '—' },
+    { key: 'modelNumber', label: 'Model number', render: (r) => r.modelNumber || '—' },
     {
       key: 'imageUrl',
       label: 'Image',
@@ -248,33 +251,33 @@ export default function MasterModelsPage() {
   return (
     <div className="p-6 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-semibold text-slate-100">Models</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Models</h1>
         <div className="flex flex-wrap items-center gap-3">
           <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}
-            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-200 text-sm">
+            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-800 text-sm">
             <option value="">All categories</option>
             {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
           </select>
           <select value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)}
-            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-200 text-sm">
+            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-800 text-sm">
             <option value="">All brands</option>
             {brandsForCategory.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
           </select>
           <select value={filterSeries} onChange={(e) => setFilterSeries(e.target.value)}
-            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-200 text-sm">
+            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-800 text-sm">
             <option value="">All series</option>
             {seriesForFilter.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
           </select>
           <button type="button" onClick={openCreate} disabled={!brands.length}
-            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50">
+            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
             Add model
           </button>
         </div>
       </div>
       <p className="text-admin-muted text-sm mb-4">
-        Models live under a series — e.g. <span className="text-slate-300">Mobile + Vivo → Y Series → Vivo Y20</span>.
+        Models live under a series — e.g. <span className="text-slate-600">Mobile + Vivo → Y Series → Vivo Y20</span>.
       </p>
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       {loading ? (
         <p className="text-admin-muted">Loading…</p>
       ) : (
@@ -284,7 +287,7 @@ export default function MasterModelsPage() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-lg rounded-xl bg-admin-card border border-admin-border p-6">
-            <h2 className="text-lg font-medium text-slate-100 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               {modal.type === 'create' ? 'New model' : 'Edit model'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -293,7 +296,7 @@ export default function MasterModelsPage() {
                   <label className="block text-sm text-admin-muted mb-1">Category</label>
                   <select value={formCategoryId}
                     onChange={(e) => { setFormCategoryId(e.target.value); setFormBrandId(''); setFormSeriesId(''); }}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100" required>
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900" required>
                     <option value="">Select</option>
                     {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
                   </select>
@@ -302,7 +305,7 @@ export default function MasterModelsPage() {
                   <label className="block text-sm text-admin-muted mb-1">Brand</label>
                   <select value={formBrandId}
                     onChange={(e) => { setFormBrandId(e.target.value); setFormSeriesId(''); }}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                     required disabled={!formCategoryId}>
                     <option value="">Select</option>
                     {formBrandOptions.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
@@ -311,7 +314,7 @@ export default function MasterModelsPage() {
                 <div>
                   <label className="block text-sm text-admin-muted mb-1">Series</label>
                   <select value={formSeriesId} onChange={(e) => setFormSeriesId(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                     disabled={!formBrandId}>
                     <option value="">— None —</option>
                     {formSeriesOptions.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
@@ -321,22 +324,22 @@ export default function MasterModelsPage() {
               <div>
                 <label className="block text-sm text-admin-muted mb-1">Model name</label>
                 <input type="text" value={name}
-                  onChange={(e) => { setName(e.target.value); if (!slug) setSlug(slugify(e.target.value)); }}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   placeholder="e.g. Vivo Y20" required />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-admin-muted mb-1">Slug</label>
-                  <input type="text" value={slug} onChange={(e) => setSlug(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
-                    placeholder="vivo-y20" />
-                  <p className="mt-1 text-xs text-admin-muted">Auto-generated from name. Unique within series.</p>
+                  <label className="block text-sm text-admin-muted mb-1">Model number</label>
+                  <input type="text" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)}
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
+                    placeholder="e.g. V2027" />
+                  <p className="mt-1 text-xs text-admin-muted">Manufacturer model number (optional).</p>
                 </div>
                 <div>
                   <label className="block text-sm text-admin-muted mb-1">Type</label>
                   <select value={category} onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100">
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900">
                     <option value="DEVICE">DEVICE</option>
                     <option value="SPARE_PART">SPARE_PART</option>
                   </select>
@@ -351,7 +354,7 @@ export default function MasterModelsPage() {
                 buttonText="Upload Model Image"
               />
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-300 hover:bg-admin-dark">Cancel</button>
+                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
                 <button type="submit" disabled={submitting}
                   className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">
                   {submitting ? 'Saving…' : 'Save'}

@@ -151,12 +151,12 @@ export default function MasterRepairServicesPage() {
   return (
     <div className="p-6 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-semibold text-slate-100">Repair Services</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Repair Services</h1>
         <div className="flex flex-wrap items-center gap-3">
           <select
             value={filterCategory}
             onChange={(e) => { setFilterCategory(e.target.value); setFilterMain(''); }}
-            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-200 text-sm"
+            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-800 text-sm"
           >
             <option value="">All categories</option>
             {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
@@ -164,7 +164,7 @@ export default function MasterRepairServicesPage() {
           <select
             value={filterMain}
             onChange={(e) => setFilterMain(e.target.value)}
-            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-200 text-sm"
+            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-800 text-sm"
           >
             <option value="">All main categories</option>
             {mainCatsForFilter.map((m) => (<option key={m.id} value={m.id}>{m.name}</option>))}
@@ -173,17 +173,17 @@ export default function MasterRepairServicesPage() {
             type="button"
             onClick={openCreate}
             disabled={!categories.length}
-            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50"
+            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
             Add issue
           </button>
         </div>
       </div>
       <p className="text-admin-muted text-sm mb-4">
-        Issues live under a main category — e.g. <span className="text-slate-300">Mobile → Display &amp; Touch → "Screen Broken"</span>.
-        Create the main category first in <span className="text-slate-300">Repair Categories</span>.
+        Issues live under a main category — e.g. <span className="text-slate-600">Mobile → Display &amp; Touch → "Screen Broken"</span>.
+        Create the main category first in <span className="text-slate-600">Repair Categories</span>.
       </p>
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       {loading ? (
         <p className="text-admin-muted">Loading…</p>
       ) : (
@@ -199,7 +199,7 @@ export default function MasterRepairServicesPage() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl bg-admin-card border border-admin-border p-6">
-            <h2 className="text-lg font-medium text-slate-100 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               {modal.type === 'create' ? 'Add issues' : 'Edit issue'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -208,7 +208,7 @@ export default function MasterRepairServicesPage() {
                 <select
                   value={deviceCategoryId}
                   onChange={(e) => { setDeviceCategoryId(e.target.value); setCategoryId(''); }}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   required
                 >
                   <option value="">Select category</option>
@@ -220,7 +220,7 @@ export default function MasterRepairServicesPage() {
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   required
                   disabled={!deviceCategoryId}
                 >
@@ -241,7 +241,7 @@ export default function MasterRepairServicesPage() {
                     value={issueInput}
                     onChange={(e) => setIssueInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addIssue(); } }}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                     placeholder="Screen Broken, No Display, Touch Not Working — comma-separated, press Enter"
                   />
                   {issueNames.length > 0 && (
@@ -265,14 +265,14 @@ export default function MasterRepairServicesPage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                     placeholder="e.g. Screen Broken"
                     required
                   />
                 </div>
               )}
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-300 hover:bg-admin-dark">Cancel</button>
+                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
                 <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">
                   {submitting ? 'Saving…' : 'Save'}
                 </button>

@@ -85,7 +85,7 @@ export default function MasterTechnicianWorkStatusesPage() {
     { key: 'label', label: 'Label' },
     { key: 'code', label: 'Code', render: (r) => <span className="text-admin-muted">{r.code}</span> },
     { key: 'ticketStatus', label: 'Ticket Status', render: (r) => (
-        <span className="rounded bg-admin-dark px-2 py-0.5 text-xs text-slate-200">{r.ticketStatus}</span>
+        <span className="rounded bg-admin-dark px-2 py-0.5 text-xs text-slate-800">{r.ticketStatus}</span>
       ) },
     { key: 'isActive', label: 'Active', render: (r) => (
         <span className={r.isActive ? 'text-emerald-400' : 'text-admin-muted'}>{r.isActive ? 'Yes' : 'No'}</span>
@@ -95,21 +95,21 @@ export default function MasterTechnicianWorkStatusesPage() {
   return (
     <div className="p-6 md:p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-slate-100">Work Status</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Work Status</h1>
         <button
           type="button"
           onClick={openCreate}
-          className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600"
+          className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           Add status
         </button>
       </div>
       <p className="text-admin-muted text-sm mb-4">
-        Options shown in the employee app's <span className="text-slate-300">Technician Work Status</span> dropdown.
-        <span className="text-slate-300"> Label</span> is what the technician sees;
-        <span className="text-slate-300"> Ticket Status</span> is the backend status the PATCH applies.
+        Options shown in the employee app's <span className="text-slate-600">Technician Work Status</span> dropdown.
+        <span className="text-slate-600"> Label</span> is what the technician sees;
+        <span className="text-slate-600"> Ticket Status</span> is the backend status the PATCH applies.
       </p>
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       {loading ? (
         <p className="text-admin-muted">Loading…</p>
       ) : (
@@ -125,7 +125,7 @@ export default function MasterTechnicianWorkStatusesPage() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl bg-admin-card border border-admin-border p-6">
-            <h2 className="text-lg font-medium text-slate-100 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               {modal.type === 'create' ? 'New status' : 'Edit status'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -135,12 +135,12 @@ export default function MasterTechnicianWorkStatusesPage() {
                   type="text"
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   placeholder="e.g. Start, In Progress, Done"
                   required
                 />
               </div>
-              <label className="flex items-center gap-2 text-sm text-slate-200">
+              <label className="flex items-center gap-2 text-sm text-slate-800">
                 <input
                   type="checkbox"
                   checked={isActive}
@@ -150,7 +150,7 @@ export default function MasterTechnicianWorkStatusesPage() {
                 Active (shown in technician dropdown)
               </label>
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-300 hover:bg-admin-dark">Cancel</button>
+                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
                 <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">
                   {submitting ? 'Saving…' : 'Save'}
                 </button>

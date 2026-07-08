@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 body {
-  @apply bg-admin-dark text-slate-100 antialiased;
+  @apply bg-admin-dark text-slate-800 antialiased;
 }

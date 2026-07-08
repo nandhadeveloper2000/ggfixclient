@@ -65,7 +65,7 @@ export default function UserManagementPage() {
       key: 'role',
       label: 'Role',
       render: (r) => (
-        <span className="text-slate-200">
+        <span className="text-slate-800">
           {r.role ?? '—'}
         </span>
       ),
@@ -84,7 +84,7 @@ export default function UserManagementPage() {
   return (
     <div className="p-6 md:p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-slate-100">User Management</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">User Management</h1>
       </div>
       <p className="text-admin-muted text-sm mb-4">
         View and manage users by shop. Select a shop to see its users and roles.
@@ -94,11 +94,11 @@ export default function UserManagementPage() {
         <p className="text-admin-muted">Loading shops…</p>
       ) : (
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-300 mb-2">Shop</label>
+          <label className="block text-sm font-medium text-slate-600 mb-2">Shop</label>
           <select
             value={selectedShopId}
             onChange={(e) => setSelectedShopId(e.target.value)}
-            className="w-full max-w-md rounded-lg border border-admin-border bg-admin-card px-4 py-2 text-slate-200 focus:border-admin-accent focus:outline-none focus:ring-1 focus:ring-admin-accent"
+            className="w-full max-w-md rounded-lg border border-admin-border bg-admin-card px-4 py-2 text-slate-800 focus:border-admin-accent focus:outline-none focus:ring-1 focus:ring-admin-accent"
           >
             <option value="">Select a shop</option>
             {shops.map((s) => {
@@ -114,11 +114,11 @@ export default function UserManagementPage() {
         </div>
       )}
 
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
       {selectedShopId && (
         <>
-          <h2 className="text-lg font-medium text-slate-200 mb-3">
+          <h2 className="text-lg font-medium text-slate-800 mb-3">
             Users{shopName ? ` — ${shopName}` : ''}
           </h2>
           {loadingUsers ? (
@@ -135,10 +135,10 @@ export default function UserManagementPage() {
       )}
 
       <div className="mt-6 p-4 rounded-lg border border-admin-border bg-admin-card/50 text-sm text-admin-muted">
-        <p className="font-medium text-slate-300 mb-1">Seeded shop users (dev, password: test)</p>
+        <p className="font-medium text-slate-600 mb-1">Seeded shop users (dev, password: test)</p>
         <ul className="list-disc list-inside space-y-0.5">
-          <li>Shop Alpha — login: <code className="text-slate-200">shop1</code> / test</li>
-          <li>Shop Beta — login: <code className="text-slate-200">shop2</code> / test</li>
+          <li>Shop Alpha — login: <code className="text-slate-800">shop1</code> / test</li>
+          <li>Shop Beta — login: <code className="text-slate-800">shop2</code> / test</li>
         </ul>
       </div>
     </div>

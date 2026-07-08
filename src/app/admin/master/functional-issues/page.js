@@ -131,7 +131,7 @@ export default function MasterFunctionalIssuesPage() {
       render: (r) => (
         <div className="flex flex-wrap gap-1.5">
           {r.items.map((it) => (
-            <span key={it.id} className="rounded-full bg-admin-dark border border-admin-border px-2.5 py-1 text-xs text-slate-200">{it.name}</span>
+            <span key={it.id} className="rounded-full bg-admin-dark border border-admin-border px-2.5 py-1 text-xs text-slate-800">{it.name}</span>
           ))}
         </div>
       ),
@@ -141,12 +141,12 @@ export default function MasterFunctionalIssuesPage() {
   return (
     <div className="p-6 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-semibold text-slate-100">Functional Issues</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Functional Issues</h1>
         <div className="flex items-center gap-3">
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-200 text-sm"
+            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-800 text-sm"
           >
             <option value="">All categories</option>
             {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
@@ -154,7 +154,7 @@ export default function MasterFunctionalIssuesPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600"
+            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             Add issues
           </button>
@@ -164,7 +164,7 @@ export default function MasterFunctionalIssuesPage() {
         Internal functionality issues per device category — left is the category, right are its issues.
         Edit a row to add/remove issues.
       </p>
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       {loading ? (
         <p className="text-admin-muted">Loading…</p>
       ) : (
@@ -180,7 +180,7 @@ export default function MasterFunctionalIssuesPage() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-lg rounded-xl bg-admin-card border border-admin-border p-6">
-            <h2 className="text-lg font-medium text-slate-100 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               {modal.type === 'create' ? 'Add functional issues' : `Edit issues — ${catName(deviceCategoryId)}`}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -189,7 +189,7 @@ export default function MasterFunctionalIssuesPage() {
                 <select
                   value={deviceCategoryId}
                   onChange={(e) => setDeviceCategoryId(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100 disabled:opacity-60"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900 disabled:opacity-60"
                   disabled={modal.type === 'edit'}
                   required
                 >
@@ -204,7 +204,7 @@ export default function MasterFunctionalIssuesPage() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addChips(); } }}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   placeholder="Battery Issue, Speaker Not Working — comma-separated, press Enter"
                 />
                 {chips.length > 0 && (
@@ -222,7 +222,7 @@ export default function MasterFunctionalIssuesPage() {
                 </p>
               </div>
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-300 hover:bg-admin-dark">Cancel</button>
+                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
                 <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">
                   {submitting ? 'Saving…' : 'Save'}
                 </button>

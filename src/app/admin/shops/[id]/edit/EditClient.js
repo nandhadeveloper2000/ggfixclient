@@ -119,10 +119,10 @@ export default function EditShopOwnerPage() {
     <div className="space-y-4 pb-24">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-100">Edit Shop Owner</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Edit Shop Owner</h1>
           <p className="text-sm text-admin-muted">Update the owner account profile. Business locations are managed from the View page.</p>
         </div>
-        <Link href={`/admin/shops/${id}/view`} className="text-sm text-admin-muted hover:text-slate-200">← Back to view</Link>
+        <Link href={`/admin/shops/${id}/view`} className="text-sm text-admin-muted hover:text-slate-800">← Back to view</Link>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -192,23 +192,23 @@ export default function EditShopOwnerPage() {
         {/* Business Locations callout */}
         <div className="rounded-xl bg-admin-card border border-admin-border p-5 flex items-center justify-between">
           <div>
-            <h3 className="text-base font-semibold text-slate-100">🏪 Business Locations</h3>
+            <h3 className="text-base font-semibold text-slate-900">🏪 Business Locations</h3>
             <p className="text-xs text-admin-muted mt-0.5">
-              This owner has <span className="text-slate-200 font-semibold">{locationsCount}</span> business location{locationsCount === 1 ? '' : 's'}. Add, edit and delete them from the View page.
+              This owner has <span className="text-slate-800 font-semibold">{locationsCount}</span> business location{locationsCount === 1 ? '' : 's'}. Add, edit and delete them from the View page.
             </p>
           </div>
-          <Link href={`/admin/shops/${id}/view`} className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600">
+          <Link href={`/admin/shops/${id}/view`} className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
             Manage Locations →
           </Link>
         </div>
 
-        {error && <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-300">{error}</div>}
+        {error && <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-500">{error}</div>}
 
         <div className="flex items-center justify-end gap-3 sticky bottom-4 bg-admin-card border border-admin-border rounded-xl p-3">
-          <Link href={`/admin/shops/${id}/view`} className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-200 hover:bg-admin-dark">
+          <Link href={`/admin/shops/${id}/view`} className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-800 hover:bg-admin-dark">
             ← Cancel
           </Link>
-          <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-5 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50">
+          <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
             {submitting ? 'Saving…' : '💾 Save Changes'}
           </button>
         </div>
@@ -234,7 +234,7 @@ function SectionHeader({ icon, title, small }) {
   return (
     <div className="flex items-center gap-2">
       <span className="text-lg">{icon}</span>
-      <h2 className={`${small ? 'text-sm' : 'text-base'} font-semibold text-slate-100`}>{title}</h2>
+      <h2 className={`${small ? 'text-sm' : 'text-base'} font-semibold text-slate-900`}>{title}</h2>
     </div>
   );
 }
@@ -254,7 +254,7 @@ function UploadCard({ label, hint, url, uploading, onFile, accept, buttonText })
   return (
     <div className="rounded-lg border border-admin-border bg-admin-dark/40 p-3 flex flex-col">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-semibold text-slate-200">{label}</span>
+        <span className="text-xs font-semibold text-slate-800">{label}</span>
         {url && <a href={url} target="_blank" rel="noreferrer" className="text-[10px] text-sky-400 hover:underline">Open</a>}
       </div>
       <span className="text-[10px] text-admin-muted mb-2">{hint}</span>
@@ -264,13 +264,13 @@ function UploadCard({ label, hint, url, uploading, onFile, accept, buttonText })
             // eslint-disable-next-line @next/next/no-img-element
             <img src={url} alt={label} className="max-h-20 object-contain" />
           ) : (
-            <span className="text-[11px] text-slate-300 truncate max-w-full px-2">{url.split('/').pop() || 'File'}</span>
+            <span className="text-[11px] text-slate-600 truncate max-w-full px-2">{url.split('/').pop() || 'File'}</span>
           )
         ) : (
           <span className="text-xs text-admin-muted">{uploading ? 'Uploading…' : 'No file'}</span>
         )}
       </div>
-      <label className="mt-2 w-full text-center rounded-md bg-admin-accent text-white text-xs py-1.5 cursor-pointer hover:bg-sky-600">
+      <label className="mt-2 w-full text-center rounded-md bg-admin-accent text-white text-xs py-1.5 cursor-pointer hover:bg-blue-700">
         {uploading ? 'Uploading…' : (url ? `Replace ${label}` : buttonText)}
         <input type="file" accept={accept} className="hidden" onChange={(e) => onFile(e.target.files?.[0] || null)} disabled={uploading} />
       </label>

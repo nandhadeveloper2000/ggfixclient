@@ -132,19 +132,19 @@ export default function ShopOwnerViewPage() {
   };
 
   if (loading) return <div className="p-6 text-admin-muted">Loading…</div>;
-  if (error)   return <div className="p-6 text-red-400">{error}</div>;
+  if (error)   return <div className="p-6 text-red-600">{error}</div>;
   if (!data)   return <div className="p-6 text-admin-muted">Not found</div>;
 
   return (
     <div className="p-6 md:p-8 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">Shop Owner Details</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Shop Owner Details</h1>
           <p className="text-sm text-admin-muted">Review account information, documents, and business locations.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/admin/shops" className="rounded-lg border border-admin-border bg-admin-dark px-4 py-2 text-sm text-slate-200 hover:bg-admin-card">← Back</Link>
-          <Link href={`/admin/shops/${id}/edit`} className="rounded-lg bg-admin-accent px-4 py-2 text-sm text-white hover:bg-sky-600">Edit</Link>
+          <Link href="/admin/shops" className="rounded-lg border border-admin-border bg-admin-dark px-4 py-2 text-sm text-slate-800 hover:bg-admin-card">← Back</Link>
+          <Link href={`/admin/shops/${id}/edit`} className="rounded-lg bg-admin-accent px-4 py-2 text-sm text-white hover:bg-blue-700">Edit</Link>
         </div>
       </div>
 
@@ -159,7 +159,7 @@ export default function ShopOwnerViewPage() {
           </div>
         )}
         <div className="flex-1">
-          <h2 className="text-xl font-semibold text-slate-100">{data.name || '—'}</h2>
+          <h2 className="text-xl font-semibold text-slate-900">{data.name || '—'}</h2>
           <p className="text-sm text-admin-muted">View personal details, verification status, documents, and linked business locations.</p>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <Badge tone={data.emailVerified ? 'success' : 'warn'}>
@@ -169,7 +169,7 @@ export default function ShopOwnerViewPage() {
             <Badge tone="info">{(data.locations?.length || 0)} Business Location{(data.locations?.length || 0) === 1 ? '' : 's'}</Badge>
             <Badge tone="info">{data.profileCompletePercent ?? 0}% Profile</Badge>
             {!data.emailVerified && (
-              <button onClick={() => setShowVerify(true)} className="ml-2 rounded-md bg-admin-accent text-white text-xs px-2 py-1 hover:bg-sky-600">
+              <button onClick={() => setShowVerify(true)} className="ml-2 rounded-md bg-admin-accent text-white text-xs px-2 py-1 hover:bg-blue-700">
                 Verify Email
               </button>
             )}
@@ -214,10 +214,10 @@ export default function ShopOwnerViewPage() {
       <div className="rounded-xl bg-admin-card border border-admin-border p-5">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-base font-semibold text-slate-100">Business Locations</h3>
+            <h3 className="text-base font-semibold text-slate-900">Business Locations</h3>
             <p className="text-xs text-admin-muted">Business locations linked to this shop owner account.</p>
           </div>
-          <button onClick={() => setShowLocModal({ mode: 'add', loc: { ...EMPTY_LOC } })} className="rounded-lg bg-admin-accent px-3 py-1.5 text-xs text-white hover:bg-sky-600">
+          <button onClick={() => setShowLocModal({ mode: 'add', loc: { ...EMPTY_LOC } })} className="rounded-lg bg-admin-accent px-3 py-1.5 text-xs text-white hover:bg-blue-700">
             + Add Business Location
           </button>
         </div>
@@ -241,21 +241,21 @@ export default function ShopOwnerViewPage() {
                 <tr><td className="px-3 py-6 text-admin-muted text-center" colSpan={8}>No business locations yet.</td></tr>
               ) : data.locations.map((loc, i) => (
                 <tr key={loc.id} className="hover:bg-admin-dark/30">
-                  <td className="px-3 py-3 text-slate-300">{i + 1}</td>
+                  <td className="px-3 py-3 text-slate-600">{i + 1}</td>
                   <td className="px-3 py-3">
-                    <div className="text-slate-100 font-medium flex items-center gap-2">
+                    <div className="text-slate-900 font-medium flex items-center gap-2">
                       {loc.name}
                       {i === 0 && <span className="text-[10px] uppercase tracking-wide rounded-full bg-admin-accent/20 text-admin-accent px-1.5 py-0.5">Main</span>}
                     </div>
                     <div className="text-[11px] text-admin-muted mt-0.5">Created {loc.createdAt ? new Date(loc.createdAt).toLocaleDateString() : '—'}</div>
                   </td>
-                  <td className="px-3 py-3 text-slate-300">{loc.mobile || '—'}</td>
-                  <td className="px-3 py-3 text-slate-300 max-w-[260px]">
+                  <td className="px-3 py-3 text-slate-600">{loc.mobile || '—'}</td>
+                  <td className="px-3 py-3 text-slate-600 max-w-[260px]">
                     <div className="line-clamp-3 text-xs">{[loc.street, loc.area, loc.taluk, loc.district, loc.state, loc.pincode].filter(Boolean).join(', ') || loc.address || '—'}</div>
                   </td>
                   <td className="px-3 py-3">
                     {loc.gstNumber ? (
-                      <span className="inline-flex items-center rounded-md bg-admin-dark px-2 py-0.5 text-[11px] text-slate-200 border border-admin-border font-mono">{loc.gstNumber}</span>
+                      <span className="inline-flex items-center rounded-md bg-admin-dark px-2 py-0.5 text-[11px] text-slate-800 border border-admin-border font-mono">{loc.gstNumber}</span>
                     ) : '—'}
                   </td>
                   <td className="px-3 py-3">
@@ -271,10 +271,10 @@ export default function ShopOwnerViewPage() {
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex items-center justify-end gap-1.5">
-                      <button onClick={() => setShowLocModal({ mode: 'edit', loc, index: i })} title="Edit" className="p-1.5 rounded hover:bg-admin-dark text-slate-300">
+                      <button onClick={() => setShowLocModal({ mode: 'edit', loc, index: i })} title="Edit" className="p-1.5 rounded hover:bg-admin-dark text-slate-600">
                         <IconPencil />
                       </button>
-                      <button onClick={() => setDeletingLoc(loc)} title="Delete" className="p-1.5 rounded hover:bg-admin-dark text-red-400">
+                      <button onClick={() => setDeletingLoc(loc)} title="Delete" className="p-1.5 rounded hover:bg-admin-dark text-red-600">
                         <IconTrash />
                       </button>
                     </div>
@@ -325,7 +325,7 @@ export default function ShopOwnerViewPage() {
 function SectionCard({ title, subtitle, children }) {
   return (
     <div className="rounded-xl bg-admin-card border border-admin-border p-5">
-      <h3 className="text-base font-semibold text-slate-100">{title}</h3>
+      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
       {subtitle && <p className="text-xs text-admin-muted mt-0.5 mb-3">{subtitle}</p>}
       <div className="space-y-2">{children}</div>
     </div>
@@ -335,7 +335,7 @@ function DetailRow({ label, value }) {
   return (
     <div className="grid grid-cols-[110px_1fr] gap-2 text-sm">
       <span className="text-[11px] uppercase tracking-wider text-admin-muted">{label}</span>
-      <span className="text-slate-200 break-all">{value ?? '—'}</span>
+      <span className="text-slate-800 break-all">{value ?? '—'}</span>
     </div>
   );
 }
@@ -351,7 +351,7 @@ function DocPreview({ label, url }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt={label} className="max-h-32 w-full object-contain rounded bg-black/20" />
         ) : (
-          <div className="text-xs text-slate-300 truncate">{url.split('/').pop() || 'File'}</div>
+          <div className="text-xs text-slate-600 truncate">{url.split('/').pop() || 'File'}</div>
         )
       ) : (
         <p className="text-xs text-admin-muted italic">No {label.toLowerCase()} uploaded.</p>
@@ -371,7 +371,7 @@ function Progress({ percent }) {
   const color = percent >= 100 ? 'bg-emerald-500' : percent >= 60 ? 'bg-amber-500' : 'bg-red-500';
   return (
     <div className="space-y-1">
-      <span className="text-[11px] font-semibold text-slate-200">{percent}%</span>
+      <span className="text-[11px] font-semibold text-slate-800">{percent}%</span>
       <div className="h-1.5 rounded-full bg-admin-dark overflow-hidden">
         <div className={`h-full ${color}`} style={{ width: `${percent}%` }} />
       </div>
@@ -382,7 +382,7 @@ function Badge({ tone, children }) {
   const tones = {
     success: 'bg-emerald-500/15 text-emerald-300',
     warn:    'bg-amber-500/15 text-amber-300',
-    muted:   'bg-slate-500/15 text-slate-400',
+    muted:   'bg-slate-500/15 text-slate-500',
     info:    'bg-admin-accent/15 text-admin-accent',
   };
   return <span className={`inline-flex items-center rounded-full ${tones[tone] || tones.muted} px-2 py-0.5 text-[11px] font-medium`}>{children}</span>;
@@ -551,10 +551,10 @@ function LocationModal({ ownerId, mode, initial, onClose, onSaved }) {
       <form onSubmit={submit} className="bg-admin-card border border-admin-border rounded-xl max-w-4xl w-full my-8">
         <div className="flex items-center justify-between px-5 py-4 border-b border-admin-border">
           <div>
-            <h3 className="text-lg font-semibold text-slate-100">{isEdit ? 'Edit Business Location' : 'New Business Location'}</h3>
+            <h3 className="text-lg font-semibold text-slate-900">{isEdit ? 'Edit Business Location' : 'New Business Location'}</h3>
             <p className="text-xs text-admin-muted">Capture shop information and proof documents for this location.</p>
           </div>
-          <button type="button" onClick={onClose} className="text-admin-muted hover:text-slate-200 text-xl leading-none">×</button>
+          <button type="button" onClick={onClose} className="text-admin-muted hover:text-slate-800 text-xl leading-none">×</button>
         </div>
 
         <div className="p-5 space-y-4">
@@ -584,7 +584,7 @@ function LocationModal({ ownerId, mode, initial, onClose, onSaved }) {
                             type="button"
                             key={k}
                             onClick={() => applySuggestion(sug)}
-                            className="block w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-admin-dark border-b border-admin-border last:border-b-0"
+                            className="block w-full text-left px-3 py-2 text-xs text-slate-800 hover:bg-admin-dark border-b border-admin-border last:border-b-0"
                           >
                             <div className="flex items-center justify-between gap-2">
                               <div className="font-medium truncate flex-1">{sug.displayName}</div>
@@ -611,9 +611,9 @@ function LocationModal({ ownerId, mode, initial, onClose, onSaved }) {
                       </>
                     ) : (
                       <div className="px-3 py-3 text-xs text-admin-muted">
-                        <div className="font-medium text-slate-300">No matches found</div>
+                        <div className="font-medium text-slate-600">No matches found</div>
                         <div className="mt-1 text-[11px]">
-                          Try just the area or pincode, or use <span className="text-slate-200">🗺 Find on Google Maps</span> below.
+                          Try just the area or pincode, or use <span className="text-slate-800">🗺 Find on Google Maps</span> below.
                         </div>
                         <button
                           type="button"
@@ -707,14 +707,14 @@ function LocationModal({ ownerId, mode, initial, onClose, onSaved }) {
           <div className="flex items-center justify-between gap-3 mt-1 flex-wrap">
             <p className="text-[10px] text-admin-muted flex-1 min-w-[200px]">
               📍 Latitude / Longitude lets customers within the pickup radius see this shop.
-              Click <span className="text-slate-200 font-semibold">Get Current Location</span> at the shop, or use <span className="text-slate-200 font-semibold">Find on Google Maps</span> to right-click a pin and read off coords.
+              Click <span className="text-slate-800 font-semibold">Get Current Location</span> at the shop, or use <span className="text-slate-800 font-semibold">Find on Google Maps</span> to right-click a pin and read off coords.
               · Timezone: <span className="font-mono">{detectTimezone()}</span>
             </p>
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={clearAddressFields}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-admin-border bg-admin-dark px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-admin-card whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-admin-border bg-admin-dark px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-admin-card whitespace-nowrap"
                 title="Wipe street/area/taluk/district/state/pincode/lat/lng"
               >
                 ✕ Clear Address
@@ -723,7 +723,7 @@ function LocationModal({ ownerId, mode, initial, onClose, onSaved }) {
                 href={mapsSearchUrl()}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-admin-border bg-admin-dark px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-admin-card whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-admin-border bg-admin-dark px-3 py-1.5 text-xs font-medium text-slate-800 hover:bg-admin-card whitespace-nowrap"
               >
                 🗺 Find on Google Maps
               </a>
@@ -731,7 +731,7 @@ function LocationModal({ ownerId, mode, initial, onClose, onSaved }) {
                 type="button"
                 onClick={fetchLocationNow}
                 disabled={locating}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-admin-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-600 disabled:opacity-60 whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-admin-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-60 whitespace-nowrap"
               >
                 {locating ? (
                   <>
@@ -749,7 +749,7 @@ function LocationModal({ ownerId, mode, initial, onClose, onSaved }) {
           </div>
 
           <div className="rounded-lg border border-admin-border p-4">
-            <h4 className="text-sm font-semibold text-slate-100">Shop Photos & Documents</h4>
+            <h4 className="text-sm font-semibold text-slate-900">Shop Photos & Documents</h4>
             <p className="text-xs text-admin-muted mb-3">Shop front + banner/visiting card are required; GST &amp; Udyam are optional proofs.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
               <UploadCard label="Shop Front View *" hint="Photo of the shop front" url={form.frontImageUrl} uploading={!!uploading.frontImageUrl} onFile={(f) => handleUpload('frontImageUrl', f, 'shops/front')} accept="image/*" />
@@ -759,12 +759,12 @@ function LocationModal({ ownerId, mode, initial, onClose, onSaved }) {
             </div>
           </div>
 
-          {error && <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-300">{error}</div>}
+          {error && <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-500">{error}</div>}
         </div>
 
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-admin-border">
-          <button type="button" onClick={onClose} className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-200 hover:bg-admin-dark">Cancel</button>
-          <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-5 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50">
+          <button type="button" onClick={onClose} className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-800 hover:bg-admin-dark">Cancel</button>
+          <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
             {submitting ? 'Saving…' : (isEdit ? 'Save changes' : 'Save Location')}
           </button>
         </div>
@@ -799,7 +799,7 @@ function UploadCard({ label, hint, url, uploading, onFile, accept }) {
   return (
     <div className="rounded-lg border border-dashed border-admin-border bg-admin-dark/40 p-3 flex flex-col items-center min-h-[150px]">
       <div className="w-full flex items-center justify-between mb-1">
-        <span className="text-xs font-semibold text-slate-200">{label}</span>
+        <span className="text-xs font-semibold text-slate-800">{label}</span>
         {url && <a href={url} target="_blank" rel="noreferrer" className="text-[10px] text-sky-400 hover:underline">Open</a>}
       </div>
       <span className="text-[10px] text-admin-muted mb-2 w-full">{hint}</span>
@@ -809,13 +809,13 @@ function UploadCard({ label, hint, url, uploading, onFile, accept }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={url} alt={label} className="max-h-20 object-contain rounded" />
           ) : (
-            <span className="text-[11px] text-slate-300 truncate max-w-full">{url.split('/').pop() || 'File'}</span>
+            <span className="text-[11px] text-slate-600 truncate max-w-full">{url.split('/').pop() || 'File'}</span>
           )
         ) : (
           <span className="text-xs text-admin-muted">{uploading ? 'Uploading…' : 'No file'}</span>
         )}
       </div>
-      <label className="mt-2 w-full text-center rounded-md bg-admin-accent text-white text-xs py-1.5 cursor-pointer hover:bg-sky-600">
+      <label className="mt-2 w-full text-center rounded-md bg-admin-accent text-white text-xs py-1.5 cursor-pointer hover:bg-blue-700">
         {url ? `Replace ${label}` : `Upload ${label}`}
         <input type="file" accept={accept} className="hidden" onChange={(e) => onFile(e.target.files?.[0] || null)} disabled={uploading} />
       </label>
@@ -862,12 +862,12 @@ function VerifyEmailModal({ email, onClose, onVerified }) {
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
       <div className="bg-admin-card border border-admin-border rounded-xl p-6 max-w-md w-full space-y-4">
         <div>
-          <h3 className="text-lg font-semibold text-slate-100">Verify Email</h3>
-          <p className="text-xs text-admin-muted">A one-time code will be sent to <span className="text-slate-200">{email}</span>. The code is never stored — it expires in 10 minutes.</p>
+          <h3 className="text-lg font-semibold text-slate-900">Verify Email</h3>
+          <p className="text-xs text-admin-muted">A one-time code will be sent to <span className="text-slate-800">{email}</span>. The code is never stored — it expires in 10 minutes.</p>
         </div>
 
         {step === 'SEND' ? (
-          <button onClick={sendOtp} disabled={busy} className="w-full rounded-lg bg-admin-accent py-2.5 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50">
+          <button onClick={sendOtp} disabled={busy} className="w-full rounded-lg bg-admin-accent py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
             {busy ? 'Sending…' : 'Send OTP'}
           </button>
         ) : (
@@ -880,24 +880,24 @@ function VerifyEmailModal({ email, onClose, onVerified }) {
                 inputMode="numeric"
                 maxLength={6}
                 placeholder="••••••"
-                className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100 tracking-widest text-center text-lg focus:outline-none focus:border-admin-accent"
+                className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900 tracking-widest text-center text-lg focus:outline-none focus:border-admin-accent"
               />
               {devOtp && (
                 <p className="text-[11px] text-amber-300 mt-2">Dev OTP (no SMTP wired): <span className="font-mono">{devOtp}</span></p>
               )}
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setStep('SEND')} className="flex-1 rounded-lg border border-admin-border py-2 text-sm text-slate-200 hover:bg-admin-dark">Resend</button>
-              <button onClick={confirmOtp} disabled={busy || otp.length < 6} className="flex-1 rounded-lg bg-admin-accent py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50">
+              <button onClick={() => setStep('SEND')} className="flex-1 rounded-lg border border-admin-border py-2 text-sm text-slate-800 hover:bg-admin-dark">Resend</button>
+              <button onClick={confirmOtp} disabled={busy || otp.length < 6} className="flex-1 rounded-lg bg-admin-accent py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
                 {busy ? 'Verifying…' : 'Verify'}
               </button>
             </div>
           </>
         )}
 
-        {error && <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-300">{error}</div>}
+        {error && <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-500">{error}</div>}
 
-        <button onClick={onClose} className="w-full text-xs text-admin-muted hover:text-slate-200">Cancel</button>
+        <button onClick={onClose} className="w-full text-xs text-admin-muted hover:text-slate-800">Cancel</button>
       </div>
     </div>
   );
@@ -907,10 +907,10 @@ function ConfirmModal({ title, message, confirmLabel, onCancel, onConfirm }) {
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
       <div className="bg-admin-card border border-admin-border rounded-xl p-6 max-w-sm w-full space-y-4">
-        <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
+        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
         <p className="text-sm text-admin-muted">{message}</p>
         <div className="flex justify-end gap-2">
-          <button onClick={onCancel} className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-200 hover:bg-admin-dark">Cancel</button>
+          <button onClick={onCancel} className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-800 hover:bg-admin-dark">Cancel</button>
           <button onClick={onConfirm} className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700">{confirmLabel}</button>
         </div>
       </div>

@@ -185,7 +185,7 @@ export default function MasterConditionGroupsPage() {
       render: (r) => (
         <div className="flex flex-wrap gap-1.5">
           {r.items.map((c) => (
-            <span key={c.id} className="rounded-full bg-admin-dark border border-admin-border px-2.5 py-1 text-xs text-slate-200">{c.name}</span>
+            <span key={c.id} className="rounded-full bg-admin-dark border border-admin-border px-2.5 py-1 text-xs text-slate-800">{c.name}</span>
           ))}
         </div>
       ),
@@ -200,7 +200,7 @@ export default function MasterConditionGroupsPage() {
       render: (r) => (
         <div className="flex flex-wrap gap-1.5">
           {(optionsByCond[r.id] || []).map((o) => (
-            <span key={o.id} className="rounded-full bg-admin-dark border border-admin-border px-2.5 py-1 text-xs text-slate-200">{o.label}</span>
+            <span key={o.id} className="rounded-full bg-admin-dark border border-admin-border px-2.5 py-1 text-xs text-slate-800">{o.label}</span>
           ))}
           {(!optionsByCond[r.id] || optionsByCond[r.id].length === 0) ? <span className="text-admin-muted text-xs">—</span> : null}
         </div>
@@ -208,7 +208,7 @@ export default function MasterConditionGroupsPage() {
     },
   ];
 
-  const inputCls = 'w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100';
+  const inputCls = 'w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900';
   const catSelect = (val, onChange, disabled) => (
     <select value={val} onChange={onChange} className={`${inputCls} disabled:opacity-60`} disabled={disabled} required>
       <option value="">Select category</option>
@@ -221,23 +221,23 @@ export default function MasterConditionGroupsPage() {
       {/* ---- Condition Categories ---- */}
       <section>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <h1 className="text-2xl font-semibold text-slate-100">Condition Categories</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Condition Categories</h1>
           <div className="flex items-center gap-3">
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-200 text-sm"
+              className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-800 text-sm"
             >
               <option value="">All categories</option>
               {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
             </select>
-            <button type="button" onClick={openCatCreate} className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600">Add category</button>
+            <button type="button" onClick={openCatCreate} className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Add category</button>
           </div>
         </div>
         <p className="text-admin-muted text-sm mb-4">
           Condition categories per device — left is the device category, right are its condition categories (e.g. Screen Condition, Back Panel). Edit a row to add/remove.
         </p>
-        {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+        {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
         {loading ? (
           <p className="text-admin-muted">Loading…</p>
         ) : (
@@ -249,9 +249,9 @@ export default function MasterConditionGroupsPage() {
       {/* ---- Condition Groups (options) ---- */}
       <section>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <h2 className="text-xl font-semibold text-slate-100">Condition Groups</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Condition Groups</h2>
           <button type="button" onClick={openOptAdd} disabled={!conds.length}
-            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50">Add options</button>
+            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">Add options</button>
         </div>
         <p className="text-admin-muted text-sm mb-4">
           Every condition category and its options (e.g. No Damage, Minor Spot, Screen Broken). Edit a row to manage its options.
@@ -268,7 +268,7 @@ export default function MasterConditionGroupsPage() {
       {catModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-lg rounded-xl bg-admin-card border border-admin-border p-6">
-            <h2 className="text-lg font-medium text-slate-100 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               {catModal.type === 'create' ? 'Add condition categories' : `Edit condition categories — ${catName(cCategory)}`}
             </h2>
             <form onSubmit={submitCats} className="space-y-4">
@@ -293,7 +293,7 @@ export default function MasterConditionGroupsPage() {
                 )}
               </div>
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => setCatModal(null)} className="rounded-lg px-4 py-2 text-slate-300 hover:bg-admin-dark">Cancel</button>
+                <button type="button" onClick={() => setCatModal(null)} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
                 <button type="submit" disabled={cSubmitting} className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">{cSubmitting ? 'Saving…' : 'Save'}</button>
               </div>
             </form>
@@ -305,7 +305,7 @@ export default function MasterConditionGroupsPage() {
       {optModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-lg rounded-xl bg-admin-card border border-admin-border p-6">
-            <h2 className="text-lg font-medium text-slate-100 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               {optModal.type === 'edit' ? `Edit options — ${optModal.cond?.name}` : 'Add options'}
             </h2>
             <form onSubmit={submitOpts} className="space-y-4">
@@ -341,7 +341,7 @@ export default function MasterConditionGroupsPage() {
                 )}
               </div>
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => setOptModal(null)} className="rounded-lg px-4 py-2 text-slate-300 hover:bg-admin-dark">Cancel</button>
+                <button type="button" onClick={() => setOptModal(null)} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
                 <button type="submit" disabled={oSubmitting} className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">{oSubmitting ? 'Saving…' : 'Save'}</button>
               </div>
             </form>

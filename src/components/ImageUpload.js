@@ -132,7 +132,7 @@ export default function ImageUpload({
   return (
     <div className="rounded-xl border border-admin-border bg-admin-card p-4">
       <div className="mb-2">
-        <p className="text-sm font-semibold text-slate-100">{label}</p>
+        <p className="text-sm font-semibold text-slate-900">{label}</p>
         {caption ? <p className="text-xs text-admin-muted">{caption}</p> : null}
       </div>
 
@@ -183,7 +183,7 @@ export default function ImageUpload({
         <button
           type="button"
           onClick={() => { onChange?.(''); setSource(''); }}
-          className="mt-2 w-full text-xs text-red-400 hover:text-red-300"
+          className="mt-2 w-full text-xs text-red-600 hover:text-red-500"
         >
           Remove image
         </button>
@@ -195,7 +195,7 @@ export default function ImageUpload({
         </p>
       ) : null}
 
-      {error ? <p className="mt-2 text-xs text-red-400">{error}</p> : null}
+      {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
     </div>
   );
 }

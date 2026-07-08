@@ -177,12 +177,12 @@ export default function MasterCategoryBrandMappingPage() {
   return (
     <div className="p-6 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-semibold text-slate-100">Category-Brand Mapping</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Category-Brand Mapping</h1>
         <div className="flex items-center gap-3">
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-200 text-sm"
+            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-800 text-sm"
           >
             <option value="">All categories</option>
             {categories.map((c) => (
@@ -193,18 +193,18 @@ export default function MasterCategoryBrandMappingPage() {
             type="button"
             onClick={openCreate}
             disabled={!categories.length || !brands.length}
-            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50"
+            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
             Add mappings
           </button>
         </div>
       </div>
       <p className="text-admin-muted text-sm mb-4">
-        Pick a category and select <span className="text-slate-300">one or many brands</span> — each
+        Pick a category and select <span className="text-slate-600">one or many brands</span> — each
         selected brand creates a (category, brand) row. Series and models always live under a
         category-brand pair.
       </p>
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       {loading ? (
         <p className="text-admin-muted">Loading…</p>
       ) : (
@@ -220,7 +220,7 @@ export default function MasterCategoryBrandMappingPage() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-2xl rounded-xl bg-admin-card border border-admin-border p-6">
-            <h2 className="text-lg font-medium text-slate-100 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               {modal.type === 'create' ? 'Add mappings' : 'Edit mapping'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -229,7 +229,7 @@ export default function MasterCategoryBrandMappingPage() {
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   required
                   disabled={modal.type === 'edit'}
                 >
@@ -247,7 +247,7 @@ export default function MasterCategoryBrandMappingPage() {
                     <div className="flex items-center gap-2 text-xs">
                       <button type="button" onClick={selectAllVisible} className="text-admin-accent hover:underline">Select all</button>
                       <span className="text-admin-muted">·</span>
-                      <button type="button" onClick={clearSelection} className="text-admin-muted hover:text-slate-200">Clear</button>
+                      <button type="button" onClick={clearSelection} className="text-admin-muted hover:text-slate-800">Clear</button>
                     </div>
                   </div>
                   <input
@@ -255,7 +255,7 @@ export default function MasterCategoryBrandMappingPage() {
                     placeholder="Search brand…"
                     value={brandSearch}
                     onChange={(e) => setBrandSearch(e.target.value)}
-                    className="w-full mb-2 rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100 text-sm"
+                    className="w-full mb-2 rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900 text-sm"
                   />
                   <div className="max-h-72 overflow-y-auto rounded-lg border border-admin-border bg-admin-dark p-2 grid grid-cols-2 gap-1">
                     {visibleBrandsForForm.length === 0 ? (
@@ -281,15 +281,15 @@ export default function MasterCategoryBrandMappingPage() {
                           ) : (
                             <div className="h-6 w-6 rounded bg-admin-card border border-admin-border" />
                           )}
-                          <span className="text-sm text-slate-200 truncate">{b.name}</span>
+                          <span className="text-sm text-slate-800 truncate">{b.name}</span>
                           {alreadyMapped ? <span className="ml-auto text-[10px] text-admin-muted">mapped</span> : null}
                         </label>
                       );
                     })}
                   </div>
                   <p className="mt-2 text-xs text-admin-muted">
-                    Selected: <span className="text-slate-200">{brandIds.length}</span> · Will create:{' '}
-                    <span className="text-slate-200">{newPairsCount}</span> new mapping{newPairsCount === 1 ? '' : 's'}
+                    Selected: <span className="text-slate-800">{brandIds.length}</span> · Will create:{' '}
+                    <span className="text-slate-800">{newPairsCount}</span> new mapping{newPairsCount === 1 ? '' : 's'}
                     {brandIds.length !== newPairsCount ? ' (skipping already-mapped brands)' : ''}
                   </p>
                 </div>
@@ -299,7 +299,7 @@ export default function MasterCategoryBrandMappingPage() {
                   <select
                     value={brandId}
                     onChange={(e) => setBrandId(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                     required
                   >
                     <option value="">Select brand</option>
@@ -311,7 +311,7 @@ export default function MasterCategoryBrandMappingPage() {
               {progress ? <p className="text-xs text-admin-muted">{progress}</p> : null}
 
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-300 hover:bg-admin-dark">Cancel</button>
+                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
                 <button
                   type="submit"
                   disabled={submitting || (modal.type === 'create' && newPairsCount === 0)}

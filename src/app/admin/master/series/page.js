@@ -186,12 +186,12 @@ export default function MasterSeriesPage() {
   return (
     <div className="p-6 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-semibold text-slate-100">Series</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Series</h1>
         <div className="flex flex-wrap items-center gap-3">
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-200 text-sm"
+            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-800 text-sm"
           >
             <option value="">All categories</option>
             {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
@@ -199,7 +199,7 @@ export default function MasterSeriesPage() {
           <select
             value={filterBrand}
             onChange={(e) => setFilterBrand(e.target.value)}
-            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-200 text-sm"
+            className="rounded-lg bg-admin-card border border-admin-border px-3 py-2 text-slate-800 text-sm"
           >
             <option value="">All brands{filterCategory ? ' in category' : ''}</option>
             {brandsForCategory.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
@@ -208,17 +208,17 @@ export default function MasterSeriesPage() {
             type="button"
             onClick={openCreate}
             disabled={!categories.length || !brands.length}
-            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50"
+            className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
             Add series
           </button>
         </div>
       </div>
       <p className="text-admin-muted text-sm mb-4">
-        Series live under a (category, brand) pair — e.g. <span className="text-slate-300">Mobile + Vivo → Y Series</span>.
-        Create the pair first in <span className="text-slate-300">Category-Brand Mapping</span> if it's missing.
+        Series live under a (category, brand) pair — e.g. <span className="text-slate-600">Mobile + Vivo → Y Series</span>.
+        Create the pair first in <span className="text-slate-600">Category-Brand Mapping</span> if it's missing.
       </p>
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       {loading ? (
         <p className="text-admin-muted">Loading…</p>
       ) : (
@@ -234,7 +234,7 @@ export default function MasterSeriesPage() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl bg-admin-card border border-admin-border p-6">
-            <h2 className="text-lg font-medium text-slate-100 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               {modal.type === 'create' ? 'New series' : 'Edit series'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -244,7 +244,7 @@ export default function MasterSeriesPage() {
                   <select
                     value={formCategoryId}
                     onChange={(e) => { setFormCategoryId(e.target.value); setFormBrandId(''); }}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                     required
                   >
                     <option value="">Select category</option>
@@ -256,7 +256,7 @@ export default function MasterSeriesPage() {
                   <select
                     value={formBrandId}
                     onChange={(e) => setFormBrandId(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                     required
                     disabled={!formCategoryId}
                   >
@@ -277,13 +277,13 @@ export default function MasterSeriesPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-100"
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   placeholder="e.g. Vivo Y Series"
                   required
                 />
               </div>
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-300 hover:bg-admin-dark">Cancel</button>
+                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
                 <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">
                   {submitting ? 'Saving…' : 'Save'}
                 </button>
