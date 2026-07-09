@@ -4,6 +4,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { masterApi } from '@/lib/api';
 import DataTable from '@/components/DataTable';
 
+// Split a bulk paste into clean, de-duplicated series names. Accepts one name
+// per line, comma-separated, or a mix; trims blanks.
+const parseSeriesNames = (raw) =>
+  Array.from(new Set(
+    String(raw || '')
+      .split(/[\n,]+/)
+      .map((s) => s.trim())
+      .filter(Boolean),
+  ));
+
 export default function MasterSeriesPage() {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -126,7 +136,7 @@ export default function MasterSeriesPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || !formCategoryId || !formBrandId) return;
+    if (!formCategoryId || !formBrandId) return;
     const mappingId = resolveMappingId(formCategoryId, formBrandId);
     if (!mappingId) {
       setError('No Category-Brand mapping for this pair. Create it in the Category-Brand Mapping page first.');
@@ -135,18 +145,47 @@ export default function MasterSeriesPage() {
     setSubmitting(true);
     setError('');
     try {
-      const body = {
-        categoryBrandId: mappingId,
-        brandId: formBrandId, // kept for backward compat
-        name: name.trim(),
-      };
       if (modal.type === 'create') {
-        await masterApi.post('/master/series', body);
+        // Bulk create: one series per line / comma-separated name.
+        const names = parseSeriesNames(name);
+        if (!names.length) {
+          setError('Enter at least one series name.');
+          setSubmitting(false);
+          return;
+        }
+        let ok = 0;
+        const failed = [];
+        for (const n of names) {
+          try {
+            await masterApi.post('/master/series', {
+              categoryBrandId: mappingId,
+              brandId: formBrandId, // kept for backward compat
+              name: n,
+            });
+            ok += 1;
+          } catch (_) {
+            failed.push(n); // usually a duplicate name under this pair
+          }
+        }
+        loadSeries();
+        if (failed.length) {
+          // Keep the modal open with only the failed names so they can be fixed/retried.
+          setName(failed.join('\n'));
+          setError(`Added ${ok} of ${names.length}. These were skipped (already exist or invalid): ${failed.join(', ')}`);
+          setSubmitting(false);
+          return;
+        }
+        closeModal();
       } else {
-        await masterApi.put(`/master/series/${modal.item.id}`, body);
+        if (!name.trim()) { setSubmitting(false); return; }
+        await masterApi.put(`/master/series/${modal.item.id}`, {
+          categoryBrandId: mappingId,
+          brandId: formBrandId,
+          name: name.trim(),
+        });
+        closeModal();
+        loadSeries();
       }
-      closeModal();
-      loadSeries();
     } catch (e) {
       setError(e.body?.message || e.message || 'Request failed');
     } finally {
@@ -271,21 +310,43 @@ export default function MasterSeriesPage() {
                   Category-Brand Mapping page.
                 </p>
               )}
-              <div>
-                <label className="block text-sm text-admin-muted mb-1">Series name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
-                  placeholder="e.g. Vivo Y Series"
-                  required
-                />
-              </div>
+              {modal.type === 'create' ? (
+                <div>
+                  <label className="block text-sm text-admin-muted mb-1">Series names</label>
+                  <textarea
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    rows={7}
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900 resize-y"
+                    placeholder={'Add multiple at once — one per line or comma-separated, e.g.\nGalaxy A Series\nGalaxy J Series\nGalaxy Note Series'}
+                    required
+                  />
+                  <p className="text-xs text-admin-muted mt-1">
+                    One per line, or comma-separated.
+                    {parseSeriesNames(name).length > 0 ? ` ${parseSeriesNames(name).length} series ready to add.` : ''}
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm text-admin-muted mb-1">Series name</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
+                    placeholder="e.g. Vivo Y Series"
+                    required
+                  />
+                </div>
+              )}
               <div className="flex gap-2 justify-end">
                 <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
                 <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">
-                  {submitting ? 'Saving…' : 'Save'}
+                  {submitting
+                    ? 'Saving…'
+                    : modal.type === 'create'
+                      ? `Save${parseSeriesNames(name).length ? ` ${parseSeriesNames(name).length}` : ''}`
+                      : 'Save'}
                 </button>
               </div>
             </form>

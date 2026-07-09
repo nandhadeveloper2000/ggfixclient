@@ -328,22 +328,12 @@ export default function MasterModelsPage() {
                   className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
                   placeholder="e.g. Vivo Y20" required />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm text-admin-muted mb-1">Model number</label>
-                  <input type="text" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
-                    placeholder="e.g. V2027" />
-                  <p className="mt-1 text-xs text-admin-muted">Manufacturer model number (optional).</p>
-                </div>
-                <div>
-                  <label className="block text-sm text-admin-muted mb-1">Type</label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900">
-                    <option value="DEVICE">DEVICE</option>
-                    <option value="SPARE_PART">SPARE_PART</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm text-admin-muted mb-1">Model number</label>
+                <input type="text" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)}
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
+                  placeholder="e.g. V2027" />
+                <p className="mt-1 text-xs text-admin-muted">Manufacturer model number (optional).</p>
               </div>
               <ImageUpload
                 value={imageUrl}
