@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { authApi, MASTER_BASE } from '@/lib/api';
 
@@ -24,8 +24,8 @@ async function uploadFile(file, folder) {
 
 export default function EditShopOwnerPage() {
   const router = useRouter();
-  const params = useParams();
-  const id = params?.id;
+  const params = useSearchParams();
+  const id = params.get('id');
 
   const [owner, setOwner] = useState({ ...EMPTY_OWNER });
   const [loading, setLoading] = useState(true);
@@ -105,7 +105,7 @@ export default function EditShopOwnerPage() {
         ...(owner.otpCode.trim() ? { otpCode: owner.otpCode.trim() } : {}),
       };
       await authApi.patch(`/auth/shop-owners/${id}`, payload);
-      router.push(`/admin/shops/${id}/view`);
+      router.push(`/admin/shops/view?id=${id}`);
     } catch (e) {
       setError(e.body?.message || e.message || 'Update failed');
     } finally {
@@ -122,7 +122,7 @@ export default function EditShopOwnerPage() {
           <h1 className="text-xl font-semibold text-slate-900">Edit Shop Owner</h1>
           <p className="text-sm text-admin-muted">Update the owner account profile. Business locations are managed from the View page.</p>
         </div>
-        <Link href={`/admin/shops/${id}/view`} className="text-sm text-admin-muted hover:text-slate-800">← Back to view</Link>
+        <Link href={`/admin/shops/view?id=${id}`} className="text-sm text-admin-muted hover:text-slate-800">← Back to view</Link>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -197,7 +197,7 @@ export default function EditShopOwnerPage() {
               This owner has <span className="text-slate-800 font-semibold">{locationsCount}</span> business location{locationsCount === 1 ? '' : 's'}. Add, edit and delete them from the View page.
             </p>
           </div>
-          <Link href={`/admin/shops/${id}/view`} className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          <Link href={`/admin/shops/view?id=${id}`} className="rounded-lg bg-admin-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
             Manage Locations →
           </Link>
         </div>
@@ -205,7 +205,7 @@ export default function EditShopOwnerPage() {
         {error && <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-500">{error}</div>}
 
         <div className="flex items-center justify-end gap-3 sticky bottom-4 bg-admin-card border border-admin-border rounded-xl p-3">
-          <Link href={`/admin/shops/${id}/view`} className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-800 hover:bg-admin-dark">
+          <Link href={`/admin/shops/view?id=${id}`} className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-800 hover:bg-admin-dark">
             ← Cancel
           </Link>
           <button type="submit" disabled={submitting} className="rounded-lg bg-admin-accent px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
@@ -218,13 +218,14 @@ export default function EditShopOwnerPage() {
         :global(.input) {
           width: 100%;
           border-radius: 0.5rem;
-          background: rgb(15 23 42);
-          border: 1px solid rgb(51 65 85);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           padding: 0.5rem 0.75rem;
-          color: rgb(241 245 249);
+          color: #0f172a;
           font-size: 0.875rem;
         }
-        :global(.input:focus) { outline: none; border-color: rgb(56 189 248); }
+        :global(.input::placeholder) { color: #94a3b8; }
+        :global(.input:focus) { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
       `}</style>
     </div>
   );

@@ -690,13 +690,14 @@ export default function NewShopOwnerPage() {
         :global(.input) {
           width: 100%;
           border-radius: 0.5rem;
-          background: rgb(15 23 42);
-          border: 1px solid rgb(51 65 85);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           padding: 0.5rem 0.75rem;
-          color: rgb(241 245 249);
+          color: #0f172a;
           font-size: 0.875rem;
         }
-        :global(.input:focus) { outline: none; border-color: rgb(56 189 248); }
+        :global(.input::placeholder) { color: #94a3b8; }
+        :global(.input:focus) { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
       `}</style>
     </div>
   );

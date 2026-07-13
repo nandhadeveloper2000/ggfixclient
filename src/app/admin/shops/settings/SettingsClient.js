@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { authApi, shopApi } from '@/lib/api';
 
 export default function ShopSettingsPage() {
-  const params = useParams();
+  const params = useSearchParams();
   const router = useRouter();
-  const shopId = params?.id;
+  const shopId = params.get('id');
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

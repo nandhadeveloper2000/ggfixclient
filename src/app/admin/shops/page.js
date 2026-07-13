@@ -111,15 +111,17 @@ export default function ShopOwnerListPage() {
                 <th className="px-4 py-3 text-left">Email ID</th>
                 <th className="px-4 py-3 text-left">Email Status</th>
                 <th className="px-4 py-3 text-left">Profile Progress</th>
+                <th className="px-4 py-3 text-left">Active Date</th>
+                <th className="px-4 py-3 text-left">Inactive Date</th>
                 <th className="px-4 py-3 text-left">Status</th>
                 <th className="px-4 py-3 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-admin-border">
               {loading ? (
-                <tr><td className="px-4 py-6 text-admin-muted" colSpan={9}>Loading…</td></tr>
+                <tr><td className="px-4 py-6 text-admin-muted" colSpan={11}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td className="px-4 py-6 text-admin-muted" colSpan={9}>No shop owners yet. Click "+ Add Shop Owner" to create one.</td></tr>
+                <tr><td className="px-4 py-6 text-admin-muted" colSpan={11}>No shop owners yet. Click "+ Add Shop Owner" to create one.</td></tr>
               ) : filtered.map((r, i) => (
                 <tr key={r.id} className="hover:bg-admin-dark/40">
                   <td className="px-4 py-3 text-slate-600">{i + 1}</td>
@@ -146,15 +148,17 @@ export default function ShopOwnerListPage() {
                   <td className="px-4 py-3 min-w-[180px]">
                     <ProfileProgress percent={r.profileCompletePercent ?? 0} done={r.sectionsComplete ?? 0} total={r.sectionsTotal ?? 5} />
                   </td>
+                  <td className="px-4 py-3 text-slate-600">{r.activeDate ? new Date(r.activeDate).toLocaleDateString() : '—'}</td>
+                  <td className="px-4 py-3 text-slate-600">{r.inactiveDate ? new Date(r.inactiveDate).toLocaleDateString() : '—'}</td>
                   <td className="px-4 py-3">
                     <StatusToggle active={!!r.isActive} onToggle={() => toggleActive(r)} />
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
-                      <Link href={`/admin/shops/${r.id}/view`} title="View" className="p-1.5 rounded hover:bg-admin-dark text-sky-400">
+                      <Link href={`/admin/shops/view?id=${r.id}`} title="View" className="p-1.5 rounded hover:bg-admin-dark text-sky-400">
                         <IconEye />
                       </Link>
-                      <Link href={`/admin/shops/${r.id}/edit`} title="Edit" className="p-1.5 rounded hover:bg-admin-dark text-slate-600">
+                      <Link href={`/admin/shops/edit?id=${r.id}`} title="Edit" className="p-1.5 rounded hover:bg-admin-dark text-slate-600">
                         <IconPencil />
                       </Link>
                       <button

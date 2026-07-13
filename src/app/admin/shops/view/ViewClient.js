@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { authApi, MASTER_BASE } from '@/lib/api';
+import { authApi, subscriptionApi, MASTER_BASE } from '@/lib/api';
 
 const EMPTY_LOC = {
   name: '', mobile: '', gstNumber: '', state: '', district: '',
@@ -99,9 +99,10 @@ async function searchAddressSuggestions(query) {
 }
 
 export default function ShopOwnerViewPage() {
-  const params = useParams();
-  const id = params?.id;
+  const params = useSearchParams();
+  const id = params.get('id');
   const [data, setData] = useState(null);
+  const [sub, setSub] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showLocModal, setShowLocModal] = useState(null); // { mode: 'add'|'edit', loc, index }
@@ -111,8 +112,14 @@ export default function ShopOwnerViewPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await authApi.get(`/auth/shop-owners/${id}`);
+      // Subscription lives in a separate service — degrade gracefully if it's
+      // unreachable / not yet deployed (the owner record still carries dates).
+      const [res, subRes] = await Promise.all([
+        authApi.get(`/auth/shop-owners/${id}`),
+        subscriptionApi.get(`/subscriptions/owner/${id}`).catch(() => null),
+      ]);
       setData(res);
+      setSub(subRes || null);
     } catch (e) {
       setError(e.body?.message || e.message || 'Failed to load');
     } finally {
@@ -144,7 +151,7 @@ export default function ShopOwnerViewPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link href="/admin/shops" className="rounded-lg border border-admin-border bg-admin-dark px-4 py-2 text-sm text-slate-800 hover:bg-admin-card">← Back</Link>
-          <Link href={`/admin/shops/${id}/edit`} className="rounded-lg bg-admin-accent px-4 py-2 text-sm text-white hover:bg-blue-700">Edit</Link>
+          <Link href={`/admin/shops/edit?id=${id}`} className="rounded-lg bg-admin-accent px-4 py-2 text-sm text-white hover:bg-blue-700">Edit</Link>
         </div>
       </div>
 
@@ -168,6 +175,11 @@ export default function ShopOwnerViewPage() {
             <Badge tone={data.isActive ? 'success' : 'muted'}>{data.isActive ? '● Active' : '○ Inactive'}</Badge>
             <Badge tone="info">{(data.locations?.length || 0)} Business Location{(data.locations?.length || 0) === 1 ? '' : 's'}</Badge>
             <Badge tone="info">{data.profileCompletePercent ?? 0}% Profile</Badge>
+            {sub?.subscriptionType ? (
+              <Badge tone={sub.subscriptionType === 'BASIC' ? 'success' : 'info'}>
+                {sub.subscriptionType === 'BASIC' ? 'Basic Plan' : 'Free Trial'}
+              </Badge>
+            ) : null}
             {!data.emailVerified && (
               <button onClick={() => setShowVerify(true)} className="ml-2 rounded-md bg-admin-accent text-white text-xs px-2 py-1 hover:bg-blue-700">
                 Verify Email
@@ -208,6 +220,33 @@ export default function ShopOwnerViewPage() {
           <DocPreview label="ID Proof" url={data.idProofUrl} />
           <DetailRow label="Created On" value={data.createdAt ? new Date(data.createdAt).toLocaleDateString() : '—'} />
         </SectionCard>
+      </div>
+
+      {/* Subscription */}
+      <div className="rounded-xl bg-admin-card border border-admin-border p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-base font-semibold text-slate-900">Subscription</h3>
+            <p className="text-xs text-admin-muted">Current plan, status, and validity window.</p>
+          </div>
+          {sub ? <SubStatusBadge status={sub.status} /> : null}
+        </div>
+        {(sub || data.activeDate || data.inactiveDate) ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <MiniStat label="Plan" value={planLabel(sub?.subscriptionType)} />
+            <MiniStat label="Active Date" value={fmtDate(sub?.activeDate ?? data.activeDate)} />
+            <MiniStat label="Inactive Date" value={fmtDate(sub?.inactiveDate ?? data.inactiveDate)} />
+            <MiniStat label="Days Left" value={sub?.daysRemaining != null ? String(sub.daysRemaining) : '—'} />
+            <MiniStat label="Shops" value={sub?.shopCount != null ? String(sub.shopCount) : '—'} />
+            <MiniStat label="Amount" value={sub?.priceAmount != null ? `₹${Number(sub.priceAmount).toLocaleString('en-IN')}` : '—'} />
+            <MiniStat label="Shop Limit" value={limitLabel(!!sub, sub?.shopLimit)} />
+            <MiniStat label="Employees" value={!sub ? '—' : (sub.employeeLimit == null ? 'Unlimited' : `${sub.employeeLimit}/shop`)} />
+            <MiniStat label="Sell Limit" value={limitLabel(!!sub, sub?.sellLimit)} />
+            <MiniStat label="Pickup" value={!sub ? '—' : (sub.pickupServiceEnabled ? 'Enabled' : 'Disabled')} />
+          </div>
+        ) : (
+          <p className="text-sm text-admin-muted italic">No subscription on record. A 15-day free trial is created automatically at registration.</p>
+        )}
       </div>
 
       {/* Business Locations - TABLE */}
@@ -386,6 +425,23 @@ function Badge({ tone, children }) {
     info:    'bg-admin-accent/15 text-admin-accent',
   };
   return <span className={`inline-flex items-center rounded-full ${tones[tone] || tones.muted} px-2 py-0.5 text-[11px] font-medium`}>{children}</span>;
+}
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '—'; }
+function planLabel(t) { return t === 'BASIC' ? 'Basic' : t === 'FREE_TRIAL' ? 'Free Trial' : '—'; }
+function limitLabel(hasSub, v) { return !hasSub ? '—' : (v == null ? 'Unlimited' : String(v)); }
+function MiniStat({ label, value }) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase tracking-wider text-admin-muted">{label}</div>
+      <div className="text-sm font-semibold text-slate-900 mt-0.5">{value}</div>
+    </div>
+  );
+}
+function SubStatusBadge({ status }) {
+  const s = String(status || '').toUpperCase();
+  const tone = s === 'ACTIVE' ? 'success' : s === 'FREE_TRIAL' ? 'info' : (s === 'EXPIRED' || s === 'CANCELLED') ? 'warn' : 'muted';
+  const label = s === 'FREE_TRIAL' ? 'Free Trial' : s ? s.charAt(0) + s.slice(1).toLowerCase() : '—';
+  return <Badge tone={tone}>{label}</Badge>;
 }
 function IconPencil() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" /></svg>;
