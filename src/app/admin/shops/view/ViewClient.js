@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { authApi, subscriptionApi, MASTER_BASE } from '@/lib/api';
+import { authApi, subscriptionApi, shopApi, MASTER_BASE } from '@/lib/api';
 
 const EMPTY_LOC = {
   name: '', mobile: '', gstNumber: '', state: '', district: '',
@@ -103,11 +103,14 @@ export default function ShopOwnerViewPage() {
   const id = params.get('id');
   const [data, setData] = useState(null);
   const [sub, setSub] = useState(null);
+  const [kyc, setKyc] = useState({});         // shopId -> docs[]
+  const [kycBusy, setKycBusy] = useState(null); // shopId being updated
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showLocModal, setShowLocModal] = useState(null); // { mode: 'add'|'edit', loc, index }
   const [showVerify, setShowVerify] = useState(false);
   const [deletingLoc, setDeletingLoc] = useState(null);
+  const [viewingLoc, setViewingLoc] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -120,6 +123,13 @@ export default function ShopOwnerViewPage() {
       ]);
       setData(res);
       setSub(subRes || null);
+      // KYC docs live per shop in shop-service; fetch for each linked location.
+      const locs = Array.isArray(res?.locations) ? res.locations : [];
+      const kycEntries = await Promise.all(locs.map(async (loc) => {
+        const docs = await shopApi.get(`/shops/${loc.id}/kyc-documents`).catch(() => []);
+        return [loc.id, Array.isArray(docs) ? docs : []];
+      }));
+      setKyc(Object.fromEntries(kycEntries));
     } catch (e) {
       setError(e.body?.message || e.message || 'Failed to load');
     } finally {
@@ -127,6 +137,19 @@ export default function ShopOwnerViewPage() {
     }
   };
   useEffect(() => { if (id) load(); }, [id]);
+
+  const reviewKyc = async (shopId, status, rejectReason) => {
+    setKycBusy(shopId);
+    try {
+      await shopApi.patch(`/shops/${shopId}/kyc-documents/review`, { status, rejectReason });
+      const docs = await shopApi.get(`/shops/${shopId}/kyc-documents`).catch(() => []);
+      setKyc((k) => ({ ...k, [shopId]: Array.isArray(docs) ? docs : [] }));
+    } catch (e) {
+      setError(e.body?.message || e.message || 'Failed to update KYC');
+    } finally {
+      setKycBusy(null);
+    }
+  };
 
   const handleDeleteLoc = async (loc) => {
     try {
@@ -249,6 +272,87 @@ export default function ShopOwnerViewPage() {
         )}
       </div>
 
+      {/* KYC Verification */}
+      <div className="rounded-xl bg-admin-card border border-admin-border p-5">
+        <div className="mb-3">
+          <h3 className="text-base font-semibold text-slate-900">Owner KYC Verification</h3>
+          <p className="text-xs text-admin-muted">Owner identity documents (Aadhar &amp; PAN). Shop documents (Front / Banner / GST / Udyam) are per Business Location below.</p>
+        </div>
+        {(() => {
+          const isIdentity = (t) => { const s = (t || '').toLowerCase(); return s.includes('aadhar') || s.includes('aadhaar') || s === 'pan'; };
+          const locs = (data.locations || []).filter((l) => (kyc[l.id] || []).some((d) => isIdentity(d.docType)));
+          if (locs.length === 0) {
+            return <p className="text-sm text-admin-muted italic">No owner KYC documents (Aadhar / PAN) uploaded yet.</p>;
+          }
+          return (
+            <div className="space-y-3">
+              {locs.map((loc) => {
+                const docs = (kyc[loc.id] || []).filter((d) => isIdentity(d.docType));
+                const overall = kycOverall(docs);
+                const approved = overall === 'APPROVED';
+                const busy = kycBusy === loc.id;
+                return (
+                  <div key={loc.id} className="rounded-lg border border-admin-border p-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-slate-900">{loc.name}</span>
+                        <KycBadge status={overall} />
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] uppercase tracking-wider text-admin-muted">Verified</span>
+                        <button
+                          type="button"
+                          title={approved ? 'Set back to Under Review' : 'Approve all KYC documents'}
+                          disabled={busy}
+                          onClick={() => reviewKyc(loc.id, approved ? 'PENDING_REVIEW' : 'APPROVED')}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${approved ? 'bg-emerald-500' : 'bg-slate-300'} ${busy ? 'opacity-60' : ''}`}
+                        >
+                          <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${approved ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => {
+                            const reason = window.prompt('Reject reason (shown to the owner):', '');
+                            if (reason !== null) reviewKyc(loc.id, 'REJECTED', reason || 'Documents rejected');
+                          }}
+                          className="text-[12px] font-semibold text-red-600 hover:underline disabled:opacity-50"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      {docs.map((d) => (
+                        <a
+                          key={d.id || d.docType}
+                          href={d.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block w-28"
+                          title={`${d.title || d.docType}${d.rejectReason ? ` — ${d.rejectReason}` : ''}`}
+                        >
+                          <div className="relative h-24 w-28 rounded-lg overflow-hidden border border-admin-border bg-admin-dark flex items-center justify-center">
+                            {isImageUrl(d.url) ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={d.url} alt={d.title || d.docType} className="h-full w-full object-cover" />
+                            ) : (
+                              <span className="text-[11px] text-admin-muted">Open file</span>
+                            )}
+                            <span className="absolute top-1.5 right-1.5"><KycDot status={d.status} /></span>
+                          </div>
+                          <div className="text-[11px] text-slate-700 mt-1 truncate font-medium">{d.title || d.docType}</div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+      </div>
+
       {/* Business Locations - TABLE */}
       <div className="rounded-xl bg-admin-card border border-admin-border p-5">
         <div className="flex items-center justify-between mb-3">
@@ -272,12 +376,13 @@ export default function ShopOwnerViewPage() {
                 <th className="px-3 py-2 text-left">GST</th>
                 <th className="px-3 py-2 text-left">Documents</th>
                 <th className="px-3 py-2 text-left">Progress</th>
+                <th className="px-3 py-2 text-center">Verified</th>
                 <th className="px-3 py-2 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-admin-border">
               {(!data.locations || data.locations.length === 0) ? (
-                <tr><td className="px-3 py-6 text-admin-muted text-center" colSpan={8}>No business locations yet.</td></tr>
+                <tr><td className="px-3 py-6 text-admin-muted text-center" colSpan={9}>No business locations yet.</td></tr>
               ) : data.locations.map((loc, i) => (
                 <tr key={loc.id} className="hover:bg-admin-dark/30">
                   <td className="px-3 py-3 text-slate-600">{i + 1}</td>
@@ -308,8 +413,18 @@ export default function ShopOwnerViewPage() {
                   <td className="px-3 py-3 min-w-[130px]">
                     <Progress percent={loc.progressPercent ?? 0} />
                   </td>
+                  <td className="px-3 py-3 text-center">
+                    <KycVerifyCell
+                      docs={kyc[loc.id]}
+                      busy={kycBusy === loc.id}
+                      onToggle={() => reviewKyc(loc.id, kycOverall(kyc[loc.id]) === 'APPROVED' ? 'PENDING_REVIEW' : 'APPROVED')}
+                    />
+                  </td>
                   <td className="px-3 py-3">
                     <div className="flex items-center justify-end gap-1.5">
+                      <button onClick={() => setViewingLoc(loc)} title="View" className="p-1.5 rounded hover:bg-admin-dark text-sky-600">
+                        <IconEye />
+                      </button>
                       <button onClick={() => setShowLocModal({ mode: 'edit', loc, index: i })} title="Edit" className="p-1.5 rounded hover:bg-admin-dark text-slate-600">
                         <IconPencil />
                       </button>
@@ -351,6 +466,14 @@ export default function ShopOwnerViewPage() {
           confirmLabel="Delete"
           onCancel={() => setDeletingLoc(null)}
           onConfirm={() => handleDeleteLoc(deletingLoc)}
+        />
+      )}
+
+      {viewingLoc && (
+        <LocationViewModal
+          loc={viewingLoc}
+          kycDocs={kyc[viewingLoc.id] || []}
+          onClose={() => setViewingLoc(null)}
         />
       )}
     </div>
@@ -426,6 +549,45 @@ function Badge({ tone, children }) {
   };
   return <span className={`inline-flex items-center rounded-full ${tones[tone] || tones.muted} px-2 py-0.5 text-[11px] font-medium`}>{children}</span>;
 }
+function kycOverall(docs) {
+  if (!docs || docs.length === 0) return 'NONE';
+  if (docs.some((d) => d.status === 'REJECTED')) return 'REJECTED';
+  if (docs.every((d) => d.status === 'APPROVED')) return 'APPROVED';
+  return 'PENDING_REVIEW';
+}
+function KycBadge({ status }) {
+  const map = {
+    APPROVED: { tone: 'success', label: 'Verified' },
+    REJECTED: { tone: 'warn', label: 'Rejected' },
+    PENDING_REVIEW: { tone: 'info', label: 'Under Review' },
+    NONE: { tone: 'muted', label: 'No documents' },
+  };
+  const m = map[status] || map.NONE;
+  return <Badge tone={m.tone}>{m.label}</Badge>;
+}
+function KycDot({ status }) {
+  const color = status === 'APPROVED' ? '#16A34A' : status === 'REJECTED' ? '#EF4444' : '#F59E0B';
+  return <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />;
+}
+function KycVerifyCell({ docs, busy, onToggle }) {
+  const overall = kycOverall(docs);
+  if (overall === 'NONE') return <span className="text-[11px] text-admin-muted">No KYC</span>;
+  const approved = overall === 'APPROVED';
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={onToggle}
+        title={approved ? 'Verified — click to set Under Review' : 'Click to verify (approve all KYC docs)'}
+        className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${approved ? 'bg-emerald-500' : 'bg-slate-300'} ${busy ? 'opacity-60' : ''}`}
+      >
+        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${approved ? 'translate-x-4' : 'translate-x-0.5'}`} />
+      </button>
+      <KycBadge status={overall} />
+    </div>
+  );
+}
 function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '—'; }
 function planLabel(t) { return t === 'BASIC' ? 'Basic' : t === 'FREE_TRIAL' ? 'Free Trial' : '—'; }
 function limitLabel(hasSub, v) { return !hasSub ? '—' : (v == null ? 'Unlimited' : String(v)); }
@@ -448,6 +610,59 @@ function IconPencil() {
 }
 function IconTrash() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /></svg>;
+}
+function IconEye() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>;
+}
+
+// Read-only detail view for one business location: shop info + shop documents
+// (front/banner/GST/Udyam images) + the shop's KYC docs.
+function LocationViewModal({ loc, kycDocs, onClose }) {
+  const addr = [loc.street, loc.area, loc.taluk, loc.district, loc.state, loc.pincode].filter(Boolean).join(', ') || loc.address || '—';
+  const hours = (loc.openingTime || loc.closingTime) ? `${loc.openingTime || '—'} – ${loc.closingTime || '—'}` : '—';
+  const coords = (loc.latitude != null && loc.longitude != null) ? `${loc.latitude}, ${loc.longitude}` : '—';
+  const shopDocs = [
+    { label: 'Shop Front', url: loc.frontImageUrl },
+    { label: 'Banner / Visiting Card', url: loc.bannerImageUrl },
+    { label: 'GST Certificate (optional)', url: loc.gstCertificateUrl },
+    { label: 'Udyam Certificate (optional)', url: loc.udyamCertificateUrl },
+  ];
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-admin-card border border-admin-border rounded-xl max-w-3xl w-full my-8">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-admin-border">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">{loc.name}</h3>
+            <p className="text-xs text-admin-muted">Business location details, documents, and KYC.</p>
+          </div>
+          <button type="button" onClick={onClose} className="text-admin-muted hover:text-slate-800 text-xl leading-none">×</button>
+        </div>
+        <div className="p-5 space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <DetailRow label="Mobile" value={loc.mobile} />
+            <DetailRow label="GST" value={loc.gstNumber} />
+            <DetailRow label="Address" value={addr} />
+            <DetailRow label="Working Days" value={loc.workingDays} />
+            <DetailRow label="Hours" value={hours} />
+            <DetailRow label="Coords" value={coords} />
+            <DetailRow label="Progress" value={`${loc.progressPercent ?? 0}%`} />
+            <DetailRow label="Created" value={loc.createdAt ? new Date(loc.createdAt).toLocaleDateString() : '—'} />
+          </div>
+
+          <div>
+            <h4 className="text-sm font-semibold text-slate-900 mb-2">Shop Documents</h4>
+            <p className="text-[11px] text-admin-muted mb-2">Shop Front &amp; Banner are required; GST &amp; Udyam are optional.</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {shopDocs.map((d) => <DocPreview key={d.label} label={d.label} url={d.url} />)}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-admin-border">
+          <button type="button" onClick={onClose} className="rounded-lg border border-admin-border px-4 py-2 text-sm text-slate-800 hover:bg-admin-dark">Close</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ============================================================================
