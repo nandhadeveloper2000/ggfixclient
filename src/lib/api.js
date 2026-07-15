@@ -105,6 +105,7 @@ export const masterApi = {
   get: (path) => request(MASTER_BASE(), path, { skipAuthRedirect: true }),
   post: (path, body) => request(MASTER_BASE(), path, { method: 'POST', body: JSON.stringify(body), skipAuthRedirect: true }),
   put: (path, body) => request(MASTER_BASE(), path, { method: 'PUT', body: JSON.stringify(body), skipAuthRedirect: true }),
+  patch: (path, body) => request(MASTER_BASE(), path, { method: 'PATCH', body: JSON.stringify(body), skipAuthRedirect: true }),
   delete: (path) => request(MASTER_BASE(), path, { method: 'DELETE', skipAuthRedirect: true }),
 };
 

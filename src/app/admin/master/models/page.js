@@ -87,6 +87,24 @@ function parseSpec(s) {
   return { ramValue, storageValue, ramLabel, storageLabel, label: `${ramLabel} + ${storageLabel}` };
 }
 
+// Small on/off toggle switch. Used for a model's "Sell Active" flag in the table
+// and the edit form (green = shown in the Sell flow, grey = hidden).
+function ToggleSwitch({ on, onClick, title, disabled }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      title={title}
+      disabled={disabled}
+      onClick={onClick}
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${on ? 'bg-emerald-500' : 'bg-slate-300'}`}
+    >
+      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${on ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+    </button>
+  );
+}
+
 export default function MasterModelsPage() {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -111,6 +129,7 @@ export default function MasterModelsPage() {
   const [modelNumber, setModelNumber] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState('DEVICE');
+  const [sellActive, setSellActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   // Global option sets (for resolving / creating colors + ram/storage on save)
@@ -264,6 +283,7 @@ export default function MasterModelsPage() {
     setModelNumber('');
     setImageUrl('');
     setCategory('DEVICE');
+    setSellActive(true);
     setColorInput(''); setColorChips([]); setOrigColorVariants([]);
     setSpecInput(''); setSpecChips([]); setOrigSpecVariants([]);
   };
@@ -280,6 +300,7 @@ export default function MasterModelsPage() {
     setModelNumber(item.modelNumber || '');
     setImageUrl(item.imageUrl || '');
     setCategory(item.category || 'DEVICE');
+    setSellActive(item.sellActive !== false);
     // Load this model's variant rows → split into color-only + spec-only chips.
     setColorInput(''); setColorChips([]); setOrigColorVariants([]);
     setSpecInput(''); setSpecChips([]); setOrigSpecVariants([]);
@@ -424,6 +445,7 @@ export default function MasterModelsPage() {
         slug: slugify(name),
         imageUrl: imageUrl.trim() || null,
         category: category || null,
+        sellActive,
       };
       let modelId;
       if (modal.type === 'create') {
@@ -440,6 +462,19 @@ export default function MasterModelsPage() {
       setError(e.body?.message || e.message || 'Request failed');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Flip a model's Sell-flow visibility from the table switch. Optimistic —
+  // update the row immediately, revert if the PATCH fails.
+  const toggleSellActive = async (row) => {
+    const next = row.sellActive === false; // currently off → turn on, else turn off
+    setList((prev) => prev.map((m) => (m.id === row.id ? { ...m, sellActive: next } : m)));
+    try {
+      await masterApi.patch(`/master/models/${row.id}/sell-active`, { sellActive: next });
+    } catch (e) {
+      setList((prev) => prev.map((m) => (m.id === row.id ? { ...m, sellActive: !next } : m)));
+      setError(e.body?.message || e.message || 'Failed to update Sell Active');
     }
   };
 
@@ -538,6 +573,20 @@ export default function MasterModelsPage() {
       render: (r) => (r.imageUrl
         ? <img src={r.imageUrl} alt="" className="h-8 w-8 rounded object-cover" />
         : '—'),
+    },
+    {
+      key: 'sellActive',
+      label: 'Sell Active',
+      render: (r) => {
+        const on = r.sellActive !== false;
+        return (
+          <ToggleSwitch
+            on={on}
+            title={on ? 'Shown in the Sell flow — click to hide' : 'Hidden from the Sell flow — click to show'}
+            onClick={() => toggleSellActive(r)}
+          />
+        );
+      },
     },
   ];
 
@@ -638,6 +687,19 @@ export default function MasterModelsPage() {
                     placeholder="e.g. V2027" />
                   <p className="mt-1 text-xs text-admin-muted">Manufacturer model number (optional).</p>
                 </div>
+              </div>
+
+              {/* Sell Active — controls whether this model appears in the mobile Sell flow */}
+              <div className="flex items-center justify-between rounded-lg bg-admin-dark border border-admin-border px-3 py-2.5">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Sell Active</p>
+                  <p className="text-xs text-admin-muted">When on, this model is shown in the customer Sell / trade-in flow.</p>
+                </div>
+                <ToggleSwitch
+                  on={sellActive}
+                  title={sellActive ? 'Shown in the Sell flow' : 'Hidden from the Sell flow'}
+                  onClick={() => setSellActive((v) => !v)}
+                />
               </div>
 
               {/* Colors — type a name, swatch auto-detected; each becomes a color-only variant row */}
