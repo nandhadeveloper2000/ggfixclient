@@ -10,6 +10,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "color-name": "^2.1.0",
+    "color-name-list": "^14.45.0",
     "lucide-react": "^1.23.0",
     "next": "^14.2.0",
     "react": "^18.2.0",

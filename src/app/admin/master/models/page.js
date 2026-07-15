@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { colornames } from 'color-name-list';
+import cssColorNames from 'color-name';
 import { masterApi } from '@/lib/api';
 import DataTable from '@/components/DataTable';
 import ImageUpload from '@/components/ImageUpload';
@@ -17,33 +19,20 @@ function slugify(s) {
 // Split a comma/newline separated string into trimmed, non-empty parts.
 const splitNames = (s) => (s || '').split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
 
-// Base color words → a representative swatch hex. Used to auto-guess the swatch
-// for fancy marketing names ("Rose Red" → red, "Diamond Green" → green).
-const BASE_COLORS = {
-  red: '#EF4444', green: '#22C55E', blue: '#3B82F6', black: '#111827', white: '#E5E7EB',
-  gray: '#9CA3AF', grey: '#9CA3AF', gold: '#D4AF37', silver: '#C0C0C0', purple: '#A855F7',
-  violet: '#8B5CF6', pink: '#EC4899', orange: '#F97316', yellow: '#FACC15', brown: '#92400E',
-  bronze: '#7A6B5D', graphite: '#41424C', titanium: '#BBB6AE', mint: '#7FE0B8', navy: '#1E3A8A',
-  teal: '#14B8A6', beige: '#E8D9B5', cream: '#F5F0E1', midnight: '#0F172A', coral: '#FF7A5A',
-  lavender: '#C5A3FF', rose: '#E11D48', cyan: '#06B6D4', maroon: '#7F1D1D', ivory: '#FFFFF0',
-  charcoal: '#36454F', sky: '#38BDF8', lime: '#84CC16', emerald: '#10B981', amber: '#F59E0B',
-};
+const DEFAULT_SWATCH = '#9CA3AF';
+const rgbToHex = (r, g, b) =>
+  '#' + [r, g, b].map((x) => Math.max(0, Math.min(255, x | 0)).toString(16).padStart(2, '0')).join('');
 
-// Exact swatches for known marketing color names — muted/branded shades that a
-// naive base-word guess would get wrong (e.g. "Rose Red" is a dusty rose, not #F00).
-// Checked before the base-word fallback. Admins can still fine-tune any swatch.
-const NAMED_COLORS = {
-  'rose red': '#A65D5A', 'diamond green': '#3E5A57', 'rose gold': '#B76E79',
-  'phantom black': '#1A1A1A', 'phantom white': '#F2F2F0', 'racing black': '#15181C',
-  'dawn white': '#EDEDE8', 'gravity black': '#20242A', 'aurora blue': '#5B7F9E',
-  'sunset gold': '#D9A45B', 'ceramic black': '#101216', 'star blue': '#3A5AA8',
-  'glaze blue': '#6E8FB8', 'space black': '#1F1F1F', 'midnight black': '#0B0B0F',
-  'ocean blue': '#2E6C9E', 'coral orange': '#FF7A4D', 'meteor black': '#181A1D',
-  'natural titanium': '#BBB6AE', 'blue titanium': '#3D506B', 'desert titanium': '#A89177',
-  // Pale/muted marketing shades that a base-word guess renders too saturated.
-  'champagne gold': '#E7D3A1', 'passion red': '#C7343A', 'sand beige': '#E3D3B3',
-  'authentic black': '#1C1C1E', 'midnight blue': '#1B2A4A', 'titanium gray': '#8E8E93',
-  'starlight': '#F0EADE', 'starry black': '#16181C', 'graphite gray': '#41424C',
+// The 148 CSS keyword colors (gold, gray, black, green, teal, …) → hex. Covers
+// base color nouns so "Passion Red" still resolves via its "red" word.
+const CSS_HEX = new Map(Object.entries(cssColorNames).map(([k, [r, g, b]]) => [k, rgbToHex(r, g, b)]));
+
+// ~32k community-named colors (marketing shades like "Champagne Gold" → #e8d6b3,
+// "Rose Red", "Starlight"). Built once, lazily, on first color lookup.
+let NAMED_HEX = null;
+const namedHex = () => {
+  if (!NAMED_HEX) NAMED_HEX = new Map(colornames.map((c) => [c.name.toLowerCase(), c.hex]));
+  return NAMED_HEX;
 };
 
 // Normalize any stored value to a 6-digit hex an <input type="color"> accepts.
@@ -51,21 +40,39 @@ const toColorInput = (h) => {
   const s = String(h || '').trim();
   if (/^#[0-9a-fA-F]{6}$/.test(s)) return s;
   if (/^#[0-9a-fA-F]{3}$/.test(s)) return '#' + s.slice(1).split('').map((c) => c + c).join('');
-  return '#9CA3AF';
+  return DEFAULT_SWATCH;
 };
 
-// Guess a swatch hex from a free-form color name: exact known name first, then
-// scan right-to-left so the base color noun wins (e.g. "Rose Red" → red, not rose).
+// An explicit "#abc" / "#aabbcc" / "rgb(r,g,b)" the admin typed directly.
+function parseLiteralColor(n) {
+  if (/^#[0-9a-f]{6}$/.test(n)) return n;
+  if (/^#[0-9a-f]{3}$/.test(n)) return '#' + n.slice(1).split('').map((c) => c + c).join('');
+  const m = n.match(/^rgba?\(\s*(\d+)\D+(\d+)\D+(\d+)/);
+  if (m) return rgbToHex(+m[1], +m[2], +m[3]);
+  return null;
+}
+
+// Resolve a free-form color name to a swatch hex, fully automatically — no
+// hand-maintained table. Priority:
+//   1. an explicit hex / rgb() value
+//   2. the exact name in the ~32k community color list ("Champagne Gold" → #e8d6b3)
+//   3. the exact CSS keyword ("gold", "teal")
+//   4. word fallback, base-noun-first ("Passion Red" → red), so an unknown
+//      descriptor still lands on the right base color.
 function guessColorHex(name) {
   const n = String(name || '').toLowerCase().trim().replace(/\s+/g, ' ');
-  if (!n) return '#9CA3AF';
-  if (NAMED_COLORS[n]) return NAMED_COLORS[n];
+  if (!n) return DEFAULT_SWATCH;
+  const literal = parseLiteralColor(n);
+  if (literal) return literal;
+  const named = namedHex();
+  if (named.has(n)) return named.get(n);
+  if (CSS_HEX.has(n)) return CSS_HEX.get(n);
   const words = n.split(' ');
   for (let i = words.length - 1; i >= 0; i--) {
-    if (BASE_COLORS[words[i]]) return BASE_COLORS[words[i]];
+    if (CSS_HEX.has(words[i])) return CSS_HEX.get(words[i]);
+    if (named.has(words[i])) return named.get(words[i]);
   }
-  for (const k of Object.keys(BASE_COLORS)) if (n.includes(k)) return BASE_COLORS[k];
-  return '#9CA3AF';
+  return DEFAULT_SWATCH;
 }
 
 // Parse a "RAM + Storage" chip like "6 GB + 128 GB" into option values.
@@ -110,10 +117,12 @@ export default function MasterModelsPage() {
   const [allColors, setAllColors] = useState([]);
   const [ramOptions, setRamOptions] = useState([]);
   const [storageOptions, setStorageOptions] = useState([]);
+  const [allVariants, setAllVariants] = useState([]);  // every model_variant row — to show colors/storage in the list
 
   // Per-model colors (color-only variant rows) + RAM/storage variants (spec-only rows)
   const [colorInput, setColorInput] = useState('');
   const [colorChips, setColorChips] = useState([]);   // [{ name, hex, colorId?, variantId? }]
+  const [pendingHex, setPendingHex] = useState(null);  // swatch picked next to the input, before the chip is added
   const [specInput, setSpecInput] = useState('');
   const [specChips, setSpecChips] = useState([]);      // [{ label, ramValue, storageValue, ramLabel, storageLabel, ramId?, storageId?, variantId? }]
   // Original variant rows loaded on edit, so we can diff → add/delete on save
@@ -154,14 +163,16 @@ export default function MasterModelsPage() {
   // Colors + RAM + Storage master options (used to render swatches and to
   // find-or-create the underlying master rows when saving a model's variants).
   const loadOptionSets = async () => {
-    const [cols, rams, stos] = await Promise.all([
+    const [cols, rams, stos, vars] = await Promise.all([
       masterApi.get('/master/colors').catch(() => []),
       masterApi.get('/master/ram-options').catch(() => []),
       masterApi.get('/master/storage-options').catch(() => []),
+      masterApi.get('/master/model-variants').catch(() => []),
     ]);
     setAllColors(Array.isArray(cols) ? cols : cols?.content ?? []);
     setRamOptions(Array.isArray(rams) ? rams : rams?.content ?? []);
     setStorageOptions(Array.isArray(stos) ? stos : stos?.content ?? []);
+    setAllVariants(Array.isArray(vars) ? vars : vars?.content ?? []);
   };
   useEffect(() => { loadOptionSets(); }, []);
 
@@ -302,18 +313,26 @@ export default function MasterModelsPage() {
   const addColorChips = () => {
     const parts = splitNames(colorInput);
     if (!parts.length) return;
+    // A color picked in the input's preview swatch overrides the auto-guess — but only
+    // for a single typed name (a comma-list has no single swatch to apply it to).
+    const override = parts.length === 1 ? pendingHex : null;
     setColorChips((prev) => {
       const next = [...prev];
       for (const p of parts) {
         if (next.some((x) => x.name.toLowerCase() === p.toLowerCase())) continue;
         const existing = allColors.find((c) => c.name.toLowerCase() === p.toLowerCase());
-        next.push(existing
-          ? { name: existing.name, hex: existing.hexCode || guessColorHex(existing.name), colorId: existing.id }
-          : { name: p, hex: guessColorHex(p) });
+        if (existing) {
+          next.push(override
+            ? { name: existing.name, hex: override, colorId: existing.id, hexTouched: true }
+            : { name: existing.name, hex: existing.hexCode || guessColorHex(existing.name), colorId: existing.id });
+        } else {
+          next.push({ name: p, hex: override || guessColorHex(p) });
+        }
       }
       return next;
     });
     setColorInput('');
+    setPendingHex(null);
   };
   const removeColorChip = (idx) => setColorChips((prev) => prev.filter((_, i) => i !== idx));
   // Fine-tune a swatch to match the real product color.
@@ -440,6 +459,30 @@ export default function MasterModelsPage() {
     series: (id) => allSeries.find((s) => s.id === id)?.name,
   };
 
+  // modelId → its distinct colors ({name, hex}) and RAM+Storage labels, built once
+  // from the bulk model-variants list so the table needs no per-row fetches.
+  const variantsByModel = useMemo(() => {
+    const colorById = new Map(allColors.map((c) => [c.id, c]));
+    const ramById = new Map(ramOptions.map((r) => [r.id, r]));
+    const stoById = new Map(storageOptions.map((s) => [s.id, s]));
+    const gbLabel = (opt) => opt?.label || (opt?.valueGb != null ? `${opt.valueGb} GB` : '?');
+    const map = new Map();
+    for (const v of allVariants) {
+      if (!v.modelId) continue;
+      let e = map.get(v.modelId);
+      if (!e) { e = { colors: [], colorKeys: new Set(), specs: [], specKeys: new Set() }; map.set(v.modelId, e); }
+      if (v.colorId && !e.colorKeys.has(v.colorId)) {
+        const col = colorById.get(v.colorId);
+        if (col?.name) { e.colorKeys.add(v.colorId); e.colors.push({ name: col.name, hex: col.hexCode || guessColorHex(col.name) }); }
+      }
+      if (v.ramOptionId && v.storageOptionId) {
+        const label = `${gbLabel(ramById.get(v.ramOptionId))} + ${gbLabel(stoById.get(v.storageOptionId))}`;
+        if (!e.specKeys.has(label)) { e.specKeys.add(label); e.specs.push(label); }
+      }
+    }
+    return map;
+  }, [allVariants, allColors, ramOptions, storageOptions]);
+
   const columns = [
     {
       key: 'category',
@@ -456,6 +499,39 @@ export default function MasterModelsPage() {
     { key: 'series', label: 'Series', render: (r) => nameById.series(r.seriesId) || '—' },
     { key: 'name', label: 'Model' },
     { key: 'modelNumber', label: 'Model number', render: (r) => r.modelNumber || '—' },
+    {
+      key: 'colors',
+      label: 'Colors',
+      render: (r) => {
+        const cs = variantsByModel.get(r.id)?.colors || [];
+        if (!cs.length) return '—';
+        return (
+          <div className="flex flex-wrap items-center gap-1.5 max-w-[220px]">
+            {cs.map((c, i) => (
+              <span key={i} className="inline-flex items-center gap-1 text-xs text-slate-700" title={c.name}>
+                <span className="inline-block h-3 w-3 rounded-full border border-admin-border shrink-0" style={{ backgroundColor: c.hex }} />
+                {c.name}
+              </span>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'specs',
+      label: 'RAM + Storage',
+      render: (r) => {
+        const ss = variantsByModel.get(r.id)?.specs || [];
+        if (!ss.length) return '—';
+        return (
+          <div className="flex flex-wrap gap-1 max-w-[200px]">
+            {ss.map((s, i) => (
+              <span key={i} className="inline-block rounded bg-admin-dark border border-admin-border px-1.5 py-0.5 text-[11px] text-slate-700 whitespace-nowrap">{s}</span>
+            ))}
+          </div>
+        );
+      },
+    },
     {
       key: 'imageUrl',
       label: 'Image',
@@ -509,11 +585,14 @@ export default function MasterModelsPage() {
 
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-lg rounded-xl bg-admin-card border border-admin-border p-6">
-            <h2 className="text-lg font-medium text-slate-900 mb-4">
-              {modal.type === 'create' ? 'New model' : 'Edit model'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="w-full max-w-2xl flex flex-col max-h-[90vh] rounded-xl bg-admin-card border border-admin-border shadow-xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-admin-border shrink-0">
+              <h2 className="text-lg font-medium text-slate-900">
+                {modal.type === 'create' ? 'New model' : 'Edit model'}
+              </h2>
+              <button type="button" onClick={closeModal} aria-label="Close" className="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm text-admin-muted mb-1">Category</label>
@@ -544,29 +623,44 @@ export default function MasterModelsPage() {
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm text-admin-muted mb-1">Model name</label>
-                <input type="text" value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
-                  placeholder="e.g. Vivo Y20" required />
-              </div>
-              <div>
-                <label className="block text-sm text-admin-muted mb-1">Model number</label>
-                <input type="text" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
-                  placeholder="e.g. V2027" />
-                <p className="mt-1 text-xs text-admin-muted">Manufacturer model number (optional).</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-admin-muted mb-1">Model name</label>
+                  <input type="text" value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
+                    placeholder="e.g. Vivo Y20" required />
+                </div>
+                <div>
+                  <label className="block text-sm text-admin-muted mb-1">Model number</label>
+                  <input type="text" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)}
+                    className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
+                    placeholder="e.g. V2027" />
+                  <p className="mt-1 text-xs text-admin-muted">Manufacturer model number (optional).</p>
+                </div>
               </div>
 
               {/* Colors — type a name, swatch auto-detected; each becomes a color-only variant row */}
               <div>
                 <label className="block text-sm text-admin-muted mb-1">Colors</label>
-                <input type="text" value={colorInput} onChange={(e) => setColorInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addColorChips(); } }}
-                  onBlur={addColorChips}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
-                  placeholder="Rose Red, Diamond Green — comma-separated, press Enter" />
+                <div className="flex items-center gap-2">
+                  <input type="text" value={colorInput}
+                    onChange={(e) => { setColorInput(e.target.value); setPendingHex(null); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addColorChips(); } }}
+                    onBlur={(e) => { if (e.relatedTarget?.dataset?.swatch) return; addColorChips(); }}
+                    className="flex-1 rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
+                    placeholder="Type ONE color, e.g. Passion Red — then press Enter" />
+                  {colorInput.trim() && !colorInput.includes(',') && (
+                    <label className="relative inline-flex h-10 w-10 shrink-0" title="Click to pick the exact color, then press Enter">
+                      <span className="inline-block h-10 w-10 rounded-lg border border-admin-border" style={{ backgroundColor: pendingHex || guessColorHex(colorInput) }} />
+                      <input type="color" data-swatch="1" value={toColorInput(pendingHex || guessColorHex(colorInput))}
+                        onChange={(e) => setPendingHex(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addColorChips(); } }}
+                        onBlur={() => addColorChips()}
+                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+                    </label>
+                  )}
+                </div>
                 {colorChips.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {colorChips.map((c, i) => (
@@ -582,7 +676,7 @@ export default function MasterModelsPage() {
                     ))}
                   </div>
                 )}
-                <p className="mt-1 text-xs text-admin-muted">Type a color name; the swatch is auto-detected — <span className="text-slate-600">click a swatch to fine-tune it</span>.</p>
+                <p className="mt-1 text-xs text-admin-muted">Add <span className="text-slate-600">one color at a time</span>: type the name → the swatch beside it shows the detected color → <span className="text-slate-600">click that swatch to pick/eyedrop the exact color</span> → press Enter. Repeat for the next color.</p>
               </div>
 
               {/* RAM + Storage variants — "6 GB + 128 GB" chips → spec-only variant rows */}
@@ -614,15 +708,15 @@ export default function MasterModelsPage() {
                 folder="models"
                 buttonText="Upload Model Image"
               />
-              <div className="flex gap-2 justify-end">
-                <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
-                <button type="submit" disabled={submitting}
-                  className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">
-                  {submitting ? 'Saving…' : 'Save'}
-                </button>
-              </div>
-            </form>
-          </div>
+            </div>
+            <div className="flex gap-2 justify-end px-6 py-4 border-t border-admin-border shrink-0">
+              <button type="button" onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-600 hover:bg-admin-dark">Cancel</button>
+              <button type="submit" disabled={submitting}
+                className="rounded-lg bg-admin-accent px-4 py-2 text-white disabled:opacity-50">
+                {submitting ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
