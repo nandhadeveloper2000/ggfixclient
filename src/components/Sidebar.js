@@ -7,10 +7,9 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Store, Users, CreditCard,
   Smartphone, Image as ImageIcon, Phone, HelpCircle, FileText,
-  Database, Tag, Briefcase, Link2, Layers, Boxes, Palette, Wrench,
-  FolderTree, MemoryStick, HardDrive,
+  Database, Tag, Briefcase, Link2, Layers, Boxes, Wrench,
+  FolderTree,
   ShoppingCart, ClipboardList, SlidersHorizontal, AlertTriangle, Settings2,
-  ShoppingBag, Package,
   Search, ChevronRight, ChevronDown, ChevronLeft, LogOut,
 } from 'lucide-react';
 
@@ -27,11 +26,8 @@ const nav = [
       { href: '/admin/master/category-brand-mapping', label: 'Category-Brand Mapping', icon: Link2 },
       { href: '/admin/master/series', label: 'Series', icon: Layers },
       { href: '/admin/master/models', label: 'Models', icon: Boxes },
-      { href: '/admin/master/colors', label: 'Colors', icon: Palette },
       { href: '/admin/master/repair-services', label: 'Repair Services', icon: Wrench },
       { href: '/admin/master/repair-categories', label: 'Repair Categories', icon: FolderTree },
-      { href: '/admin/master/ram-options', label: 'RAM Options', icon: MemoryStick },
-      { href: '/admin/master/storage-options', label: 'Storage Options', icon: HardDrive },
     ],
   },
   {
@@ -55,13 +51,6 @@ const nav = [
     ],
   },
   { href: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard },
-  {
-    label: 'Marketplace',
-    icon: ShoppingBag,
-    children: [
-      { href: '/admin/marketplace/items', label: 'Items', icon: Package },
-    ],
-  },
 ];
 
 export default function Sidebar({ onLogout }) {

@@ -58,12 +58,18 @@ export default function DataTable({
     const list = rows || [];
     const q = query.trim().toLowerCase();
     if (!q) return list;
-    return list.filter((r) =>
-      Object.values(r)
+    const hit = (v) => v != null && String(v).toLowerCase().includes(q);
+    return list.filter((r) => {
+      // Raw string/number fields stored directly on the row.
+      const rawMatch = Object.values(r)
         .filter((v) => typeof v === 'string' || typeof v === 'number')
-        .some((v) => String(v).toLowerCase().includes(q))
-    );
-  }, [rows, query]);
+        .some(hit);
+      if (rawMatch) return true;
+      // Derived/looked-up columns (e.g. a name resolved from an id, or values
+      // pulled from another dataset) expose their text via col.search(row).
+      return columns.some((col) => typeof col.search === 'function' && hit(col.search(r)));
+    });
+  }, [rows, query, columns]);
 
   const total = filtered.length;
 

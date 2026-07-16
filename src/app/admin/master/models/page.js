@@ -518,25 +518,28 @@ export default function MasterModelsPage() {
     return map;
   }, [allVariants, allColors, ramOptions, storageOptions]);
 
+  // Resolve a model's category name via series → mapping, falling back to categoryId.
+  const categoryNameOf = (r) => {
+    const s = allSeries.find((x) => x.id === r.seriesId);
+    const map = s ? mappings.find((m) => m.id === s.categoryBrandId) : null;
+    return nameById.cat(map?.categoryId || r.categoryId);
+  };
+
   const columns = [
     {
       key: 'category',
       label: 'Category',
-      render: (r) => {
-        // Try via series → mapping; fall back to categoryId field
-        const s = allSeries.find((x) => x.id === r.seriesId);
-        const map = s ? mappings.find((m) => m.id === s.categoryBrandId) : null;
-        const cid = map?.categoryId || r.categoryId;
-        return nameById.cat(cid) || '—';
-      },
+      search: (r) => categoryNameOf(r),
+      render: (r) => categoryNameOf(r) || '—',
     },
-    { key: 'brand', label: 'Brand', render: (r) => nameById.brand(r.brandId) || '—' },
-    { key: 'series', label: 'Series', render: (r) => nameById.series(r.seriesId) || '—' },
+    { key: 'brand', label: 'Brand', search: (r) => nameById.brand(r.brandId), render: (r) => nameById.brand(r.brandId) || '—' },
+    { key: 'series', label: 'Series', search: (r) => nameById.series(r.seriesId), render: (r) => nameById.series(r.seriesId) || '—' },
     { key: 'name', label: 'Model' },
     { key: 'modelNumber', label: 'Model number', render: (r) => r.modelNumber || '—' },
     {
       key: 'colors',
       label: 'Colors',
+      search: (r) => (variantsByModel.get(r.id)?.colors || []).map((c) => c.name).join(' '),
       render: (r) => {
         const cs = variantsByModel.get(r.id)?.colors || [];
         if (!cs.length) return '—';
@@ -555,6 +558,7 @@ export default function MasterModelsPage() {
     {
       key: 'specs',
       label: 'RAM + Storage',
+      search: (r) => (variantsByModel.get(r.id)?.specs || []).join(' '),
       render: (r) => {
         const ss = variantsByModel.get(r.id)?.specs || [];
         if (!ss.length) return '—';
