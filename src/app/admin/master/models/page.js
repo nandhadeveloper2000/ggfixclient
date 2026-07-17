@@ -136,17 +136,14 @@ export default function MasterModelsPage() {
   const [allColors, setAllColors] = useState([]);
   const [ramOptions, setRamOptions] = useState([]);
   const [storageOptions, setStorageOptions] = useState([]);
-  const [allVariants, setAllVariants] = useState([]);  // every model_variant row — to show colors/storage in the list
 
-  // Per-model colors (color-only variant rows) + RAM/storage variants (spec-only rows)
+  // Per-model colors + RAM/storage chips — persisted inline on the model as
+  // JSON arrays (model.colors = [names], model.ramStorage = [labels]).
   const [colorInput, setColorInput] = useState('');
-  const [colorChips, setColorChips] = useState([]);   // [{ name, hex, colorId?, variantId? }]
+  const [colorChips, setColorChips] = useState([]);   // [{ name, hex, colorId?, hexTouched? }]
   const [pendingHex, setPendingHex] = useState(null);  // swatch picked next to the input, before the chip is added
   const [specInput, setSpecInput] = useState('');
-  const [specChips, setSpecChips] = useState([]);      // [{ label, ramValue, storageValue, ramLabel, storageLabel, ramId?, storageId?, variantId? }]
-  // Original variant rows loaded on edit, so we can diff → add/delete on save
-  const [origColorVariants, setOrigColorVariants] = useState([]); // [{ variantId }]
-  const [origSpecVariants, setOrigSpecVariants] = useState([]);   // [{ variantId }]
+  const [specChips, setSpecChips] = useState([]);      // [{ label, ramValue, storageValue, ramLabel, storageLabel, ramId?, storageId? }]
 
   const resolveMappingId = (categoryId, brandId) =>
     mappings.find((m) => m.categoryId === categoryId && m.brandId === brandId)?.id || null;
@@ -179,19 +176,19 @@ export default function MasterModelsPage() {
   };
   useEffect(() => { loadRefData(); }, []);
 
-  // Colors + RAM + Storage master options (used to render swatches and to
-  // find-or-create the underlying master rows when saving a model's variants).
+  // Colors + RAM + Storage master options — the global palettes/labels. Colors +
+  // RAM/storage now live INLINE on each model (model.colors / model.ramStorage);
+  // these master lists are kept only to resolve a colour name → swatch hex and to
+  // find-or-create the palette rows the mobile pickers resolve labels against.
   const loadOptionSets = async () => {
-    const [cols, rams, stos, vars] = await Promise.all([
+    const [cols, rams, stos] = await Promise.all([
       masterApi.get('/master/colors').catch(() => []),
       masterApi.get('/master/ram-options').catch(() => []),
       masterApi.get('/master/storage-options').catch(() => []),
-      masterApi.get('/master/model-variants').catch(() => []),
     ]);
     setAllColors(Array.isArray(cols) ? cols : cols?.content ?? []);
     setRamOptions(Array.isArray(rams) ? rams : rams?.content ?? []);
     setStorageOptions(Array.isArray(stos) ? stos : stos?.content ?? []);
-    setAllVariants(Array.isArray(vars) ? vars : vars?.content ?? []);
   };
   useEffect(() => { loadOptionSets(); }, []);
 
@@ -284,11 +281,11 @@ export default function MasterModelsPage() {
     setImageUrl('');
     setCategory('DEVICE');
     setSellActive(true);
-    setColorInput(''); setColorChips([]); setOrigColorVariants([]);
-    setSpecInput(''); setSpecChips([]); setOrigSpecVariants([]);
+    setColorInput(''); setColorChips([]);
+    setSpecInput(''); setSpecChips([]);
   };
 
-  const openEdit = async (item) => {
+  const openEdit = (item) => {
     setModal({ type: 'edit', item });
     // Reverse-resolve from seriesId → mapping → (category, brand)
     const s = allSeries.find((x) => x.id === item.seriesId);
@@ -301,32 +298,25 @@ export default function MasterModelsPage() {
     setImageUrl(item.imageUrl || '');
     setCategory(item.category || 'DEVICE');
     setSellActive(item.sellActive !== false);
-    // Load this model's variant rows → split into color-only + spec-only chips.
-    setColorInput(''); setColorChips([]); setOrigColorVariants([]);
-    setSpecInput(''); setSpecChips([]); setOrigSpecVariants([]);
-    try {
-      const variants = await masterApi.get(`/master/models/${item.id}/variants`).catch(() => []);
-      const cChips = [], sChips = [], oColors = [], oSpecs = [];
-      for (const v of (Array.isArray(variants) ? variants : [])) {
-        const hasSpec = v.ramOptionId && v.storageOptionId;
-        const hasColor = !!v.colorId;
-        if (hasColor && !hasSpec) {
-          const col = allColors.find((c) => c.id === v.colorId);
-          const nm = col?.name || 'Color';
-          cChips.push({ name: nm, hex: col?.hexCode || guessColorHex(nm), colorId: v.colorId, variantId: v.id });
-          oColors.push({ variantId: v.id });
-        } else if (hasSpec && !hasColor) {
-          const ram = ramOptions.find((r) => r.id === v.ramOptionId);
-          const sto = storageOptions.find((s) => s.id === v.storageOptionId);
-          const ramLabel = ram?.label || (ram ? `${ram.valueGb} GB` : '?');
-          const storageLabel = sto?.label || (sto ? `${sto.valueGb} GB` : '?');
-          sChips.push({ label: `${ramLabel} + ${storageLabel}`, ramValue: ram?.valueGb, storageValue: sto?.valueGb, ramLabel, storageLabel, ramId: v.ramOptionId, storageId: v.storageOptionId, variantId: v.id });
-          oSpecs.push({ variantId: v.id });
+    // Colours + RAM/storage come straight off the model's inline JSON arrays.
+    setColorInput(''); setSpecInput('');
+    const cChips = (Array.isArray(item.colors) ? item.colors : []).map((name) => {
+      const col = allColors.find((c) => c.name?.toLowerCase() === String(name).toLowerCase());
+      return { name, hex: col?.hexCode || guessColorHex(name), colorId: col?.id };
+    });
+    const sChips = (Array.isArray(item.ramStorage) ? item.ramStorage : [])
+      .map((label) => {
+        const spec = parseSpec(label);
+        if (spec) {
+          const ram = ramOptions.find((r) => r.valueGb === spec.ramValue);
+          const sto = storageOptions.find((s) => s.valueGb === spec.storageValue);
+          return { ...spec, ramId: ram?.id, storageId: sto?.id };
         }
-      }
-      setColorChips(cChips); setSpecChips(sChips);
-      setOrigColorVariants(oColors); setOrigSpecVariants(oSpecs);
-    } catch { /* leave chips empty on failure */ }
+        // Keep an unparseable stored label visible rather than silently dropping it.
+        return { label: String(label), label_raw: true };
+      })
+      .filter(Boolean);
+    setColorChips(cChips); setSpecChips(sChips);
   };
   const closeModal = () => setModal(null);
 
@@ -382,48 +372,27 @@ export default function MasterModelsPage() {
   };
   const removeSpecChip = (idx) => setSpecChips((prev) => prev.filter((_, i) => i !== idx));
 
-  // Persist the model's color-only + spec-only variant rows: delete removed ones,
-  // create new ones (find-or-create the underlying master color/ram/storage first).
-  // Full combos (color + ram + storage on one row) are left untouched.
-  const syncVariants = async (modelId) => {
-    // Colors — delete removed, then add new
-    for (const ov of origColorVariants) {
-      if (!colorChips.some((c) => c.variantId === ov.variantId)) {
-        await masterApi.delete(`/master/model-variants/${ov.variantId}`).catch(() => {});
-      }
-    }
+  // Colours + RAM/storage are stored inline on the model as name/label strings.
+  // The global master_colors / ram / storage rows are still kept in sync so the
+  // swatch hex persists and the mobile pickers can resolve a label → option UUID.
+  // No per-model master_model_variant rows are created any more.
+  const persistPalette = async () => {
     for (const c of colorChips) {
-      let colorId = c.colorId, created = false;
-      if (!colorId) {
-        const existing = allColors.find((x) => x.name.toLowerCase() === c.name.toLowerCase());
-        if (existing) colorId = existing.id;
-        else { colorId = (await masterApi.post('/master/colors', { name: c.name, hexCode: c.hex }).catch(() => null))?.id; created = true; }
-      }
-      // If the admin fine-tuned an existing color's swatch, persist the corrected hex.
-      if (colorId && !created && c.hexTouched) {
-        await masterApi.put(`/master/colors/${colorId}`, { name: c.name, hexCode: c.hex }).catch(() => {});
-      }
-      // Attach a color-only variant row only for chips that aren't already linked.
-      if (colorId && !c.variantId) await masterApi.post('/master/model-variants', { modelId, colorId }).catch(() => {});
-    }
-    // RAM + Storage — delete removed, then add new
-    for (const ov of origSpecVariants) {
-      if (!specChips.some((s) => s.variantId === ov.variantId)) {
-        await masterApi.delete(`/master/model-variants/${ov.variantId}`).catch(() => {});
+      const existing = allColors.find((x) => x.name?.toLowerCase() === c.name.toLowerCase());
+      if (!existing) {
+        await masterApi.post('/master/colors', { name: c.name, hexCode: c.hex }).catch(() => {});
+      } else if (c.hexTouched) {
+        // Admin fine-tuned an existing colour's swatch — persist the corrected hex.
+        await masterApi.put(`/master/colors/${existing.id}`, { name: existing.name, hexCode: c.hex }).catch(() => {});
       }
     }
     for (const s of specChips) {
-      if (s.variantId) continue;
-      let ramId = s.ramId, storageId = s.storageId;
-      if (!ramId) {
-        ramId = ramOptions.find((r) => r.valueGb === s.ramValue)?.id
-          || (await masterApi.post('/master/ram-options', { valueGb: s.ramValue, label: s.ramLabel || `${s.ramValue} GB` }).catch(() => null))?.id;
+      if (s.ramValue && !ramOptions.some((r) => r.valueGb === s.ramValue)) {
+        await masterApi.post('/master/ram-options', { valueGb: s.ramValue, label: s.ramLabel || `${s.ramValue} GB` }).catch(() => {});
       }
-      if (!storageId) {
-        storageId = storageOptions.find((r) => r.valueGb === s.storageValue)?.id
-          || (await masterApi.post('/master/storage-options', { valueGb: s.storageValue, label: s.storageLabel || `${s.storageValue} GB` }).catch(() => null))?.id;
+      if (s.storageValue && !storageOptions.some((r) => r.valueGb === s.storageValue)) {
+        await masterApi.post('/master/storage-options', { valueGb: s.storageValue, label: s.storageLabel || `${s.storageValue} GB` }).catch(() => {});
       }
-      if (ramId && storageId) await masterApi.post('/master/model-variants', { modelId, ramOptionId: ramId, storageOptionId: storageId }).catch(() => {});
     }
     loadOptionSets();
   };
@@ -446,16 +415,16 @@ export default function MasterModelsPage() {
         imageUrl: imageUrl.trim() || null,
         category: category || null,
         sellActive,
+        // Inline options: colours as names, RAM+storage as "6 GB + 128 GB" labels.
+        colors: colorChips.map((c) => c.name),
+        ramStorage: specChips.map((s) => s.label),
       };
-      let modelId;
       if (modal.type === 'create') {
-        const created = await masterApi.post('/master/models', body);
-        modelId = created?.id;
+        await masterApi.post('/master/models', body);
       } else {
         await masterApi.put(`/master/models/${modal.item.id}`, body);
-        modelId = modal.item.id;
       }
-      if (modelId) await syncVariants(modelId);
+      await persistPalette();
       closeModal();
       loadModels();
     } catch (e) {
@@ -494,29 +463,24 @@ export default function MasterModelsPage() {
     series: (id) => allSeries.find((s) => s.id === id)?.name,
   };
 
-  // modelId → its distinct colors ({name, hex}) and RAM+Storage labels, built once
-  // from the bulk model-variants list so the table needs no per-row fetches.
+  // modelId → its distinct colors ({name, hex}) and RAM+Storage labels, read
+  // straight off each model's inline colors / ramStorage JSON arrays. The colour
+  // swatch hex is resolved from the master palette by name, falling back to the
+  // auto-detected guess.
   const variantsByModel = useMemo(() => {
-    const colorById = new Map(allColors.map((c) => [c.id, c]));
-    const ramById = new Map(ramOptions.map((r) => [r.id, r]));
-    const stoById = new Map(storageOptions.map((s) => [s.id, s]));
-    const gbLabel = (opt) => opt?.label || (opt?.valueGb != null ? `${opt.valueGb} GB` : '?');
+    const colorByName = new Map(allColors.map((c) => [String(c.name).toLowerCase(), c]));
     const map = new Map();
-    for (const v of allVariants) {
-      if (!v.modelId) continue;
-      let e = map.get(v.modelId);
-      if (!e) { e = { colors: [], colorKeys: new Set(), specs: [], specKeys: new Set() }; map.set(v.modelId, e); }
-      if (v.colorId && !e.colorKeys.has(v.colorId)) {
-        const col = colorById.get(v.colorId);
-        if (col?.name) { e.colorKeys.add(v.colorId); e.colors.push({ name: col.name, hex: col.hexCode || guessColorHex(col.name) }); }
-      }
-      if (v.ramOptionId && v.storageOptionId) {
-        const label = `${gbLabel(ramById.get(v.ramOptionId))} + ${gbLabel(stoById.get(v.storageOptionId))}`;
-        if (!e.specKeys.has(label)) { e.specKeys.add(label); e.specs.push(label); }
-      }
+    for (const m of list) {
+      if (!m.id) continue;
+      const colors = (Array.isArray(m.colors) ? m.colors : []).map((name) => {
+        const col = colorByName.get(String(name).toLowerCase());
+        return { name, hex: col?.hexCode || guessColorHex(name) };
+      });
+      const specs = Array.isArray(m.ramStorage) ? m.ramStorage : [];
+      map.set(m.id, { colors, specs });
     }
     return map;
-  }, [allVariants, allColors, ramOptions, storageOptions]);
+  }, [list, allColors]);
 
   // Resolve a model's category name via series → mapping, falling back to categoryId.
   const categoryNameOf = (r) => {
