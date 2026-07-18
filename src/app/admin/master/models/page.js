@@ -19,6 +19,32 @@ function slugify(s) {
 // Split a comma/newline separated string into trimmed, non-empty parts.
 const splitNames = (s) => (s || '').split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
 
+// Model numbers can be pasted several at once, slash / comma / semicolon / newline
+// separated (e.g. "MZB0L8AIN/MZB0L88IN"). Split into clean parts.
+const splitNumbers = (s) => (s || '').split(/[/,;\n]/).map((x) => x.trim()).filter(Boolean);
+
+// Normalise a model's model_number to a clean array of codes. It can arrive as:
+//   • a real jsonb array (post-migration)        -> ["A","B"]
+//   • a plain slash/comma string (legacy varchar) -> "A / B"
+//   • JSON *text* of an array or a quoted string, if a save happened while the
+//     column was still varchar -> '["A","B"]' or '"A,B"'. Parse those so the
+//     brackets/quotes don't leak into the chips.
+const asNumberList = (mn) => {
+  if (Array.isArray(mn)) return mn.map((x) => String(x).trim()).filter(Boolean);
+  if (mn == null) return [];
+  let s = String(mn).trim();
+  if (!s) return [];
+  if (s[0] === '[' || s[0] === '"') {
+    try {
+      const parsed = JSON.parse(s);
+      if (Array.isArray(parsed)) return parsed.map((x) => String(x).trim()).filter(Boolean);
+      if (typeof parsed === 'string') s = parsed; // unwrap "A,B" then split below
+    } catch { /* not valid JSON — fall through to a plain split */ }
+  }
+  // Split, then strip any stray quote/bracket chars a half-migrated value left behind.
+  return splitNumbers(s).map((x) => x.replace(/^["[\]]+|["[\]]+$/g, '').trim()).filter(Boolean);
+};
+
 const DEFAULT_SWATCH = '#9CA3AF';
 const rgbToHex = (r, g, b) =>
   '#' + [r, g, b].map((x) => Math.max(0, Math.min(255, x | 0)).toString(16).padStart(2, '0')).join('');
@@ -87,6 +113,16 @@ function parseSpec(s) {
   return { ramValue, storageValue, ramLabel, storageLabel, label: `${ramLabel} + ${storageLabel}` };
 }
 
+// Parse a storage-only chip like "128 GB" / "256 GB" into a storage option value.
+// Used when the model's storage type is "Storage only" (no RAM half).
+function parseStorageOnly(s) {
+  const label = String(s || '').replace(/\s+/g, ' ').trim();
+  if (!label) return null;
+  const storageValue = parseInt(label, 10);
+  if (!storageValue) return null;
+  return { storageOnly: true, storageValue, storageLabel: label, label };
+}
+
 // Small on/off toggle switch. Used for a model's "Sell Active" flag in the table
 // and the edit form (green = shown in the Sell flow, grey = hidden).
 function ToggleSwitch({ on, onClick, title, disabled }) {
@@ -126,7 +162,10 @@ export default function MasterModelsPage() {
   const [formBrandId, setFormBrandId] = useState('');
   const [formSeriesId, setFormSeriesId] = useState('');
   const [name, setName] = useState('');
-  const [modelNumber, setModelNumber] = useState('');
+  // Model numbers are chips (a model can carry several regional codes); persisted
+  // inline on the model as a JSON array (model.modelNumber = [codes]).
+  const [modelNumberInput, setModelNumberInput] = useState('');
+  const [modelNumbers, setModelNumbers] = useState([]);
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState('DEVICE');
   const [sellActive, setSellActive] = useState(true);
@@ -143,7 +182,10 @@ export default function MasterModelsPage() {
   const [colorChips, setColorChips] = useState([]);   // [{ name, hex, colorId?, hexTouched? }]
   const [pendingHex, setPendingHex] = useState(null);  // swatch picked next to the input, before the chip is added
   const [specInput, setSpecInput] = useState('');
-  const [specChips, setSpecChips] = useState([]);      // [{ label, ramValue, storageValue, ramLabel, storageLabel, ramId?, storageId? }]
+  const [specChips, setSpecChips] = useState([]);      // [{ label, ramValue, storageValue, ramLabel, storageLabel, ramId?, storageId?, storageOnly? }]
+  // 'RAM_STORAGE' -> chips are "6 GB + 128 GB" combos; 'STORAGE_ONLY' -> chips are
+  // plain "128 GB" sizes. Inferred from the model on edit; drives the input parser.
+  const [storageMode, setStorageMode] = useState('RAM_STORAGE');
 
   const resolveMappingId = (categoryId, brandId) =>
     mappings.find((m) => m.categoryId === categoryId && m.brandId === brandId)?.id || null;
@@ -277,12 +319,13 @@ export default function MasterModelsPage() {
     setFormBrandId(filterBrand || '');
     setFormSeriesId(filterSeries || '');
     setName('');
-    setModelNumber('');
+    setModelNumberInput(''); setModelNumbers([]);
     setImageUrl('');
     setCategory('DEVICE');
     setSellActive(true);
     setColorInput(''); setColorChips([]);
     setSpecInput(''); setSpecChips([]);
+    setStorageMode('RAM_STORAGE');
   };
 
   const openEdit = (item) => {
@@ -294,7 +337,7 @@ export default function MasterModelsPage() {
     setFormBrandId(map?.brandId || item.brandId || '');
     setFormSeriesId(item.seriesId || '');
     setName(item.name || '');
-    setModelNumber(item.modelNumber || '');
+    setModelNumberInput(''); setModelNumbers(asNumberList(item.modelNumber));
     setImageUrl(item.imageUrl || '');
     setCategory(item.category || 'DEVICE');
     setSellActive(item.sellActive !== false);
@@ -304,13 +347,25 @@ export default function MasterModelsPage() {
       const col = allColors.find((c) => c.name?.toLowerCase() === String(name).toLowerCase());
       return { name, hex: col?.hexCode || guessColorHex(name), colorId: col?.id };
     });
-    const sChips = (Array.isArray(item.ramStorage) ? item.ramStorage : [])
+    const rawSpecs = Array.isArray(item.ramStorage) ? item.ramStorage : [];
+    // A model is storage-only when it has specs and none of them use the "+" combo.
+    const modeIsStorageOnly = rawSpecs.length > 0 && rawSpecs.every((l) => !String(l).includes('+'));
+    setStorageMode(modeIsStorageOnly ? 'STORAGE_ONLY' : 'RAM_STORAGE');
+    const sChips = rawSpecs
       .map((label) => {
-        const spec = parseSpec(label);
-        if (spec) {
-          const ram = ramOptions.find((r) => r.valueGb === spec.ramValue);
-          const sto = storageOptions.find((s) => s.valueGb === spec.storageValue);
-          return { ...spec, ramId: ram?.id, storageId: sto?.id };
+        if (String(label).includes('+')) {
+          const spec = parseSpec(label);
+          if (spec) {
+            const ram = ramOptions.find((r) => r.valueGb === spec.ramValue);
+            const sto = storageOptions.find((s) => s.valueGb === spec.storageValue);
+            return { ...spec, ramId: ram?.id, storageId: sto?.id };
+          }
+        } else {
+          const st = parseStorageOnly(label);
+          if (st) {
+            const sto = storageOptions.find((s) => s.valueGb === st.storageValue);
+            return { ...st, storageId: sto?.id };
+          }
         }
         // Keep an unparseable stored label visible rather than silently dropping it.
         return { label: String(label), label_raw: true };
@@ -349,6 +404,21 @@ export default function MasterModelsPage() {
   // Fine-tune a swatch to match the real product color.
   const updateColorHex = (idx, hex) => setColorChips((prev) => prev.map((c, i) => (i === idx ? { ...c, hex, hexTouched: true } : c)));
 
+  // ---- Model number chips ----
+  const addModelNumberChips = () => {
+    const parts = splitNumbers(modelNumberInput);
+    if (!parts.length) return;
+    setModelNumbers((prev) => {
+      const next = [...prev];
+      for (const p of parts) {
+        if (!next.some((x) => x.toLowerCase() === p.toLowerCase())) next.push(p);
+      }
+      return next;
+    });
+    setModelNumberInput('');
+  };
+  const removeModelNumberChip = (idx) => setModelNumbers((prev) => prev.filter((_, i) => i !== idx));
+
   // ---- RAM + Storage chips ----
   const addSpecChips = () => {
     const parts = splitNames(specInput);
@@ -357,20 +427,39 @@ export default function MasterModelsPage() {
     setSpecChips((prev) => {
       const next = [...prev];
       for (const p of parts) {
-        const spec = parseSpec(p);
-        if (!spec) { bad = true; continue; }
-        const key = `${spec.ramValue}+${spec.storageValue}`;
-        if (next.some((x) => `${x.ramValue}+${x.storageValue}` === key)) continue;
-        const ram = ramOptions.find((r) => r.valueGb === spec.ramValue);
-        const sto = storageOptions.find((s) => s.valueGb === spec.storageValue);
-        next.push({ ...spec, ramId: ram?.id, storageId: sto?.id });
+        if (storageMode === 'STORAGE_ONLY') {
+          const st = parseStorageOnly(p);
+          if (!st) { bad = true; continue; }
+          const key = `s:${st.storageValue}`;
+          if (next.some((x) => x.storageOnly && `s:${x.storageValue}` === key)) continue;
+          const sto = storageOptions.find((s) => s.valueGb === st.storageValue);
+          next.push({ ...st, storageId: sto?.id });
+        } else {
+          const spec = parseSpec(p);
+          if (!spec) { bad = true; continue; }
+          const key = `${spec.ramValue}+${spec.storageValue}`;
+          if (next.some((x) => !x.storageOnly && `${x.ramValue}+${x.storageValue}` === key)) continue;
+          const ram = ramOptions.find((r) => r.valueGb === spec.ramValue);
+          const sto = storageOptions.find((s) => s.valueGb === spec.storageValue);
+          next.push({ ...spec, ramId: ram?.id, storageId: sto?.id });
+        }
       }
       return next;
     });
-    if (bad) setError('Use the format "RAM + Storage", e.g. 6 GB + 128 GB.');
+    if (bad) setError(storageMode === 'STORAGE_ONLY'
+      ? 'Use a storage size, e.g. 128 GB.'
+      : 'Use the format "RAM + Storage", e.g. 6 GB + 128 GB.');
     setSpecInput('');
   };
   const removeSpecChip = (idx) => setSpecChips((prev) => prev.filter((_, i) => i !== idx));
+
+  // Switching storage type drops chips of the other shape so a model never mixes
+  // "6 GB + 128 GB" combos with plain "128 GB" sizes.
+  const changeStorageMode = (mode) => {
+    setStorageMode(mode);
+    setSpecInput('');
+    setSpecChips((prev) => prev.filter((c) => (mode === 'STORAGE_ONLY' ? c.storageOnly : !c.storageOnly)));
+  };
 
   // Colours + RAM/storage are stored inline on the model as name/label strings.
   // The global master_colors / ram / storage rows are still kept in sync so the
@@ -403,12 +492,17 @@ export default function MasterModelsPage() {
     setSubmitting(true);
     setError('');
     try {
+      // Fold any code still sitting in the input (user typed but didn't press Enter).
+      const allModelNumbers = [...modelNumbers];
+      for (const p of splitNumbers(modelNumberInput)) {
+        if (!allModelNumbers.some((x) => x.toLowerCase() === p.toLowerCase())) allModelNumbers.push(p);
+      }
       const body = {
         brandId: formBrandId,
         categoryId: formCategoryId || null,
         seriesId: formSeriesId || null,
         name: name.trim(),
-        modelNumber: modelNumber.trim() || null,
+        modelNumber: allModelNumbers,
         // Slug is no longer edited in the UI; keep it auto-generated so the
         // (series_id, slug) unique constraint and legacy consumers keep working.
         slug: slugify(name),
@@ -499,7 +593,22 @@ export default function MasterModelsPage() {
     { key: 'brand', label: 'Brand', search: (r) => nameById.brand(r.brandId), render: (r) => nameById.brand(r.brandId) || '—' },
     { key: 'series', label: 'Series', search: (r) => nameById.series(r.seriesId), render: (r) => nameById.series(r.seriesId) || '—' },
     { key: 'name', label: 'Model' },
-    { key: 'modelNumber', label: 'Model number', render: (r) => r.modelNumber || '—' },
+    {
+      key: 'modelNumber',
+      label: 'Model number',
+      search: (r) => asNumberList(r.modelNumber).join(' '),
+      render: (r) => {
+        const ns = asNumberList(r.modelNumber);
+        if (!ns.length) return '—';
+        return (
+          <div className="flex flex-wrap gap-1 max-w-[200px]">
+            {ns.map((n, i) => (
+              <span key={i} className="inline-block rounded bg-admin-dark border border-admin-border px-1.5 py-0.5 text-[11px] text-slate-700 whitespace-nowrap">{n}</span>
+            ))}
+          </div>
+        );
+      },
+    },
     {
       key: 'colors',
       label: 'Colors',
@@ -521,7 +630,7 @@ export default function MasterModelsPage() {
     },
     {
       key: 'specs',
-      label: 'RAM + Storage',
+      label: 'RAM / Storage',
       search: (r) => (variantsByModel.get(r.id)?.specs || []).join(' '),
       render: (r) => {
         const ss = variantsByModel.get(r.id)?.specs || [];
@@ -650,10 +759,23 @@ export default function MasterModelsPage() {
                 </div>
                 <div>
                   <label className="block text-sm text-admin-muted mb-1">Model number</label>
-                  <input type="text" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)}
+                  <input type="text" value={modelNumberInput}
+                    onChange={(e) => setModelNumberInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addModelNumberChips(); } }}
+                    onBlur={addModelNumberChips}
                     className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
-                    placeholder="e.g. V2027" />
-                  <p className="mt-1 text-xs text-admin-muted">Manufacturer model number (optional).</p>
+                    placeholder="e.g. MZB0L8AIN — press Enter" />
+                  {modelNumbers.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {modelNumbers.map((n, i) => (
+                        <span key={`${n}-${i}`} className="inline-flex items-center gap-1 rounded-full bg-admin-dark border border-admin-border px-3 py-1 text-xs text-slate-800">
+                          {n}
+                          <button type="button" onClick={() => removeModelNumberChip(i)} className="text-slate-400 hover:text-slate-700">×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <p className="mt-1 text-xs text-admin-muted">Manufacturer model number(s) — add one at a time; paste several separated by <span className="text-slate-600">/ , ;</span> to split them.</p>
                 </div>
               </div>
 
@@ -709,25 +831,44 @@ export default function MasterModelsPage() {
                 <p className="mt-1 text-xs text-admin-muted">Add <span className="text-slate-600">one color at a time</span>: type the name → the swatch beside it shows the detected color → <span className="text-slate-600">click that swatch to pick/eyedrop the exact color</span> → press Enter. Repeat for the next color.</p>
               </div>
 
-              {/* RAM + Storage variants — "6 GB + 128 GB" chips → spec-only variant rows */}
+              {/* RAM + Storage (or Storage-only) variants — chips saved inline on the model */}
               <div>
-                <label className="block text-sm text-admin-muted mb-1">RAM + Storage variants</label>
+                <label className="block text-sm text-admin-muted mb-1">
+                  {storageMode === 'STORAGE_ONLY' ? 'Storage variants' : 'RAM + Storage variants'}
+                </label>
+                {/* Storage type toggle — RAM + Storage combos vs plain storage sizes */}
+                <div className="inline-flex rounded-lg border border-admin-border overflow-hidden mb-2 text-sm">
+                  <button type="button" onClick={() => changeStorageMode('RAM_STORAGE')}
+                    className={`px-3 py-1.5 font-medium ${storageMode === 'RAM_STORAGE' ? 'bg-admin-accent text-white' : 'bg-admin-dark text-slate-700 hover:bg-admin-card'}`}>
+                    RAM + Storage
+                  </button>
+                  <button type="button" onClick={() => changeStorageMode('STORAGE_ONLY')}
+                    className={`px-3 py-1.5 font-medium border-l border-admin-border ${storageMode === 'STORAGE_ONLY' ? 'bg-admin-accent text-white' : 'bg-admin-dark text-slate-700 hover:bg-admin-card'}`}>
+                    Storage only
+                  </button>
+                </div>
                 <input type="text" value={specInput} onChange={(e) => setSpecInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSpecChips(); } }}
                   onBlur={addSpecChips}
                   className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
-                  placeholder="4 GB + 128 GB, 6 GB + 128 GB — comma-separated, press Enter" />
+                  placeholder={storageMode === 'STORAGE_ONLY'
+                    ? '128 GB, 256 GB — comma-separated, press Enter'
+                    : '4 GB + 128 GB, 6 GB + 128 GB — comma-separated, press Enter'} />
                 {specChips.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {specChips.map((s, i) => (
-                      <span key={`${s.ramValue}-${s.storageValue}-${i}`} className="inline-flex items-center gap-1 rounded-full bg-admin-accent/20 text-admin-accent px-3 py-1 text-xs">
+                      <span key={`${s.label}-${i}`} className="inline-flex items-center gap-1 rounded-full bg-admin-accent/20 text-admin-accent px-3 py-1 text-xs">
                         {s.label}
                         <button type="button" onClick={() => removeSpecChip(i)} className="text-admin-accent/80 hover:text-slate-700">×</button>
                       </span>
                     ))}
                   </div>
                 )}
-                <p className="mt-1 text-xs text-admin-muted">Format: RAM + Storage (e.g. 6 GB + 128 GB).</p>
+                <p className="mt-1 text-xs text-admin-muted">
+                  {storageMode === 'STORAGE_ONLY'
+                    ? 'Format: Storage only (e.g. 128 GB) — for devices sold by storage size, without a RAM option.'
+                    : 'Format: RAM + Storage (e.g. 6 GB + 128 GB).'}
+                </p>
               </div>
 
               <ImageUpload
