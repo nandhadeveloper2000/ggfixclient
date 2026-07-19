@@ -166,6 +166,10 @@ export default function MasterModelsPage() {
   // inline on the model as a JSON array (model.modelNumber = [codes]).
   const [modelNumberInput, setModelNumberInput] = useState('');
   const [modelNumbers, setModelNumbers] = useState([]);
+  // Other numbers — a second, independent set of chips for any secondary
+  // identifier codes; persisted inline as model.otherNumber = [codes].
+  const [otherNumberInput, setOtherNumberInput] = useState('');
+  const [otherNumbers, setOtherNumbers] = useState([]);
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState('DEVICE');
   const [sellActive, setSellActive] = useState(true);
@@ -320,6 +324,7 @@ export default function MasterModelsPage() {
     setFormSeriesId(filterSeries || '');
     setName('');
     setModelNumberInput(''); setModelNumbers([]);
+    setOtherNumberInput(''); setOtherNumbers([]);
     setImageUrl('');
     setCategory('DEVICE');
     setSellActive(true);
@@ -338,6 +343,7 @@ export default function MasterModelsPage() {
     setFormSeriesId(item.seriesId || '');
     setName(item.name || '');
     setModelNumberInput(''); setModelNumbers(asNumberList(item.modelNumber));
+    setOtherNumberInput(''); setOtherNumbers(asNumberList(item.otherNumber));
     setImageUrl(item.imageUrl || '');
     setCategory(item.category || 'DEVICE');
     setSellActive(item.sellActive !== false);
@@ -419,6 +425,21 @@ export default function MasterModelsPage() {
   };
   const removeModelNumberChip = (idx) => setModelNumbers((prev) => prev.filter((_, i) => i !== idx));
 
+  // ---- Other number chips ---- (same behaviour as model numbers, separate list)
+  const addOtherNumberChips = () => {
+    const parts = splitNumbers(otherNumberInput);
+    if (!parts.length) return;
+    setOtherNumbers((prev) => {
+      const next = [...prev];
+      for (const p of parts) {
+        if (!next.some((x) => x.toLowerCase() === p.toLowerCase())) next.push(p);
+      }
+      return next;
+    });
+    setOtherNumberInput('');
+  };
+  const removeOtherNumberChip = (idx) => setOtherNumbers((prev) => prev.filter((_, i) => i !== idx));
+
   // ---- RAM + Storage chips ----
   const addSpecChips = () => {
     const parts = splitNames(specInput);
@@ -497,12 +518,17 @@ export default function MasterModelsPage() {
       for (const p of splitNumbers(modelNumberInput)) {
         if (!allModelNumbers.some((x) => x.toLowerCase() === p.toLowerCase())) allModelNumbers.push(p);
       }
+      const allOtherNumbers = [...otherNumbers];
+      for (const p of splitNumbers(otherNumberInput)) {
+        if (!allOtherNumbers.some((x) => x.toLowerCase() === p.toLowerCase())) allOtherNumbers.push(p);
+      }
       const body = {
         brandId: formBrandId,
         categoryId: formCategoryId || null,
         seriesId: formSeriesId || null,
         name: name.trim(),
         modelNumber: allModelNumbers,
+        otherNumber: allOtherNumbers,
         // Slug is no longer edited in the UI; keep it auto-generated so the
         // (series_id, slug) unique constraint and legacy consumers keep working.
         slug: slugify(name),
@@ -599,6 +625,22 @@ export default function MasterModelsPage() {
       search: (r) => asNumberList(r.modelNumber).join(' '),
       render: (r) => {
         const ns = asNumberList(r.modelNumber);
+        if (!ns.length) return '—';
+        return (
+          <div className="flex flex-wrap gap-1 max-w-[200px]">
+            {ns.map((n, i) => (
+              <span key={i} className="inline-block rounded bg-admin-dark border border-admin-border px-1.5 py-0.5 text-[11px] text-slate-700 whitespace-nowrap">{n}</span>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'otherNumber',
+      label: 'Other number',
+      search: (r) => asNumberList(r.otherNumber).join(' '),
+      render: (r) => {
+        const ns = asNumberList(r.otherNumber);
         if (!ns.length) return '—';
         return (
           <div className="flex flex-wrap gap-1 max-w-[200px]">
@@ -777,6 +819,28 @@ export default function MasterModelsPage() {
                   )}
                   <p className="mt-1 text-xs text-admin-muted">Manufacturer model number(s) — add one at a time; paste several separated by <span className="text-slate-600">/ , ;</span> to split them.</p>
                 </div>
+              </div>
+
+              {/* Other number — secondary identifier chips, same behaviour as Model number */}
+              <div>
+                <label className="block text-sm text-admin-muted mb-1">Other number</label>
+                <input type="text" value={otherNumberInput}
+                  onChange={(e) => setOtherNumberInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addOtherNumberChips(); } }}
+                  onBlur={addOtherNumberChips}
+                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
+                  placeholder="e.g. V2143 — press Enter" />
+                {otherNumbers.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {otherNumbers.map((n, i) => (
+                      <span key={`${n}-${i}`} className="inline-flex items-center gap-1 rounded-full bg-admin-dark border border-admin-border px-3 py-1 text-xs text-slate-800">
+                        {n}
+                        <button type="button" onClick={() => removeOtherNumberChip(i)} className="text-slate-400 hover:text-slate-700">×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-1 text-xs text-admin-muted">Any additional identifier code(s) — add one at a time; paste several separated by <span className="text-slate-600">/ , ;</span> to split them.</p>
               </div>
 
               {/* Sell Active — controls whether this model appears in the mobile Sell flow */}
