@@ -22,6 +22,12 @@ import { MASTER_BASE } from '@/lib/api';
  *  - aspect        "square" | "wide"
  *  - maxMB         max file size (default 5)
  *  - clientOnly    skip the backend attempt and go straight to base64
+ *  - allowBase64Fallback
+ *                  when false, a failed backend upload surfaces the error
+ *                  instead of quietly storing a data URI. Set this on any
+ *                  screen whose column cannot hold a multi-MB string, or where
+ *                  an inline image would be served to the mobile app on every
+ *                  list fetch. Defaults true so existing callers are unchanged.
  */
 export default function ImageUpload({
   value,
@@ -33,6 +39,7 @@ export default function ImageUpload({
   aspect = 'square',
   maxMB = 5,
   clientOnly = false,
+  allowBase64Fallback = true,
 }) {
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -92,6 +99,7 @@ export default function ImageUpload({
     try {
       // 1) Try backend so we get a Cloudinary URL when the service is up.
       if (!clientOnly) {
+        let failure = null;
         try {
           const r = await uploadToBackend(file);
           if (r?.url) {
@@ -99,9 +107,19 @@ export default function ImageUpload({
             setSource(r.source || 'backend');
             return;
           }
-        } catch (_) {
-          // Fall through to client-side base64.
+          failure = new Error('Upload returned no URL');
+        } catch (e) {
+          failure = e;
         }
+        if (!allowBase64Fallback) {
+          // Callers that opt out would rather see the upload fail than end up
+          // holding a data URI they cannot persist.
+          setError(
+            `${failure.message}. Image hosting must be reachable — check /media/ping on master-data-service.`
+          );
+          return;
+        }
+        // Otherwise fall through to client-side base64.
       }
       // 2) Client-side base64 fallback — always succeeds.
       setProgress(0);

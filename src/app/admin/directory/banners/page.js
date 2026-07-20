@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { masterApi } from '@/lib/api';
 import DataTable from '@/components/DataTable';
+import ImageUpload from '@/components/ImageUpload';
 
 export default function DirectoryBannersPage() {
   const [list, setList] = useState([]);
@@ -11,7 +12,6 @@ export default function DirectoryBannersPage() {
   const [modal, setModal] = useState(null);
   const [title, setTitle] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [linkTarget, setLinkTarget] = useState('');
   const [sortOrder, setSortOrder] = useState('0');
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -38,7 +38,6 @@ export default function DirectoryBannersPage() {
     setModal({ type: 'create' });
     setTitle('');
     setImageUrl('');
-    setLinkTarget('');
     setSortOrder('0');
     setIsActive(true);
   };
@@ -46,7 +45,6 @@ export default function DirectoryBannersPage() {
     setModal({ type: 'edit', item });
     setTitle(item.title || '');
     setImageUrl(item.imageUrl || '');
-    setLinkTarget(item.linkTarget || '');
     setSortOrder(String(item.sortOrder ?? 0));
     setIsActive(item.isActive ?? true);
   };
@@ -60,7 +58,6 @@ export default function DirectoryBannersPage() {
       const body = {
         title: title.trim(),
         imageUrl: imageUrl.trim() || null,
-        linkTarget: linkTarget.trim() || null,
         sortOrder: parseInt(sortOrder, 10) || 0,
         isActive,
       };
@@ -100,7 +97,6 @@ export default function DirectoryBannersPage() {
         ),
     },
     { key: 'title', label: 'Title' },
-    { key: 'linkTarget', label: 'Link', render: (r) => r.linkTarget || '—' },
     { key: 'sortOrder', label: 'Sort', render: (r) => r.sortOrder ?? 0 },
     { key: 'isActive', label: 'Active', render: (r) => (r.isActive ? 'Yes' : 'No') },
   ];
@@ -150,25 +146,21 @@ export default function DirectoryBannersPage() {
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm text-admin-muted mb-1">Image URL</label>
-                <input
-                  type="text"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-admin-muted mb-1">Link target</label>
-                <input
-                  type="text"
-                  value={linkTarget}
-                  onChange={(e) => setLinkTarget(e.target.value)}
-                  className="w-full rounded-lg bg-admin-dark border border-admin-border px-3 py-2 text-slate-900"
-                  placeholder="/route or https://…"
-                />
-              </div>
+              {/* aspect="wide" matches the shape the mobile carousel renders.
+                  allowBase64Fallback={false}: master_banners.image_url is a
+                  hosted-URL column and every banner ships to the app on each
+                  list fetch, so a silent data-URI fallback is worse than a
+                  visible upload error. */}
+              <ImageUpload
+                value={imageUrl}
+                onChange={setImageUrl}
+                label="Banner image"
+                caption="Click or drag an image here — shown in the mobile app carousel"
+                folder="banners"
+                buttonText="Upload banner image"
+                aspect="wide"
+                allowBase64Fallback={false}
+              />
               <div>
                 <label className="block text-sm text-admin-muted mb-1">Sort order</label>
                 <input

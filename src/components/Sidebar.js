@@ -10,6 +10,7 @@ import {
   Database, Tag, Briefcase, Link2, Layers, Boxes, Wrench,
   FolderTree,
   ShoppingCart, ClipboardList, SlidersHorizontal, AlertTriangle, Settings2,
+  ShoppingBag, Package,
   Search, ChevronRight, ChevronDown, ChevronLeft, LogOut,
 } from 'lucide-react';
 
@@ -51,6 +52,13 @@ const nav = [
     ],
   },
   { href: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard },
+  {
+    label: 'Marketplace',
+    icon: ShoppingBag,
+    children: [
+      { href: '/admin/marketplace/items', label: 'Items', icon: Package },
+    ],
+  },
 ];
 
 export default function Sidebar({ onLogout }) {
